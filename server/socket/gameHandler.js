@@ -13,11 +13,13 @@ module.exports = function(io) {
     // If the room doesn't exist yet, create it: rooms[session_code] = { players: [] }
 
     socket.on('session:join', ({ session_code, user_id, username, role }) => {
+      console.log(`[gameHandler] session:join received -> session_code: ${session_code}, user_id: ${user_id}, role: ${role}`);
       socket.join(session_code);
       if (!rooms[session_code]) rooms[session_code] = { players: [] };
       if (role === 'player1' || role === 'player2') {
         rooms[session_code].players.push({ socket_id: socket.id, user_id, username, role });
       }
+      console.log(`[gameHandler] emitting session:player_joined to room: ${session_code} with payload:`, { user_id, username, role });
       io.to(session_code).emit('session:player_joined', { user_id, username, role });
     });
 
