@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const http = require('http');
+const { Server } = require('socket.io');
 require('dotenv').config();
 
 const authRouter = require('./routes/auth');
@@ -31,9 +33,20 @@ app.use(cookieParser());
 app.use('/api/auth', authRouter);
 app.use('/api/sessions', sessionsRouter);
 
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: frontendUrl,
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
+
+require('./socket/gameHandler')(io);
+
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
 

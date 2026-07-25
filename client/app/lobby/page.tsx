@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import QRCode from "react-qr-code";
 import api from "@/lib/axios";
 import { Shield, Users, Loader2, Play, QrCode as QrIcon, AlertCircle } from "lucide-react";
+import { getSocket, disconnectSocket } from "@/lib/socket";
 
 interface UserProfile {
   user_id: string;
@@ -22,6 +23,8 @@ export default function LobbyPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<SessionData | null>(null);
+  const [player1, setPlayer1] = useState<{ username: string; user_id: string } | null>(null);
+  const [player2, setPlayer2] = useState<{ username: string; user_id: string } | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,8 +42,26 @@ export default function LobbyPage() {
         // 2. Call POST /api/sessions
         const sessionRes = await api.post("/api/sessions");
         if (isMounted) {
-          setSession(sessionRes.data);
+          const sessionData = sessionRes.data;
+          setSession(sessionData);
           setLoading(false);
+
+          // Connect socket and join room as host
+          const socket = getSocket();
+          socket.emit("session:join", {
+            session_code: sessionData.session_code,
+            user_id: meRes.data.user_id,
+            username: meRes.data.username,
+            role: "host",
+          });
+
+          socket.on("session:player_joined", ({ user_id, username, role }: { user_id: string; username: string; role: string }) => {
+            if (role === "player1") {
+              setPlayer1({ username, user_id });
+            } else if (role === "player2") {
+              setPlayer2({ username, user_id });
+            }
+          });
         }
       } catch (err: any) {
         if (err.response && err.response.status === 401) {
@@ -58,6 +79,9 @@ export default function LobbyPage() {
 
     return () => {
       isMounted = false;
+      const socket = getSocket();
+      socket.off("session:player_joined");
+      disconnectSocket();
     };
   }, [router]);
 
@@ -167,34 +191,49 @@ export default function LobbyPage() {
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
             <div className="flex items-center gap-2 text-white font-bold text-lg">
               <Users className="w-5 h-5 text-indigo-400" />
-              <span>Players Joined (0/2)</span>
+              <span>Players Joined ({(player1 ? 1 : 0) + (player2 ? 1 : 0)}/2)</span>
             </div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-              Waiting for players…
-            </span>
+            {(player1 && player2) ? (
+              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Ready to Start!
+              </span>
+            ) : (
+              <span className="text-xs font-semibold uppercase tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                Waiting for players…
+              </span>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* P1 Slot */}
-            <div className="flex items-center gap-3.5 p-4 rounded-xl bg-slate-950/50 border border-slate-800/80 border-dashed text-slate-400">
-              <div className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center font-bold font-mono text-slate-500">
+            <div className={`flex items-center gap-3.5 p-4 rounded-xl border transition-all duration-300 ${player1 ? 'bg-indigo-950/50 border-indigo-500/50 text-white shadow-lg shadow-indigo-500/10' : 'bg-slate-950/50 border-slate-800/80 border-dashed text-slate-400'}`}>
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold font-mono ${player1 ? 'bg-indigo-500 text-white shadow-md' : 'bg-slate-900 border border-slate-800 text-slate-500'}`}>
                 P1
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-slate-400">Waiting…</p>
-                <p className="text-xs text-slate-600">Player 1 Slot</p>
+                <p className={`text-sm font-bold ${player1 ? 'text-white' : 'text-slate-400'}`}>
+                  {player1 ? player1.username : 'Waiting…'}
+                </p>
+                <p className={`text-xs ${player1 ? 'text-indigo-300 font-semibold' : 'text-slate-600'}`}>
+                  {player1 ? 'Player 1 Joined' : 'Player 1 Slot'}
+                </p>
               </div>
             </div>
 
             {/* P2 Slot */}
-            <div className="flex items-center gap-3.5 p-4 rounded-xl bg-slate-950/50 border border-slate-800/80 border-dashed text-slate-400">
-              <div className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center font-bold font-mono text-slate-500">
+            <div className={`flex items-center gap-3.5 p-4 rounded-xl border transition-all duration-300 ${player2 ? 'bg-purple-950/50 border-purple-500/50 text-white shadow-lg shadow-purple-500/10' : 'bg-slate-950/50 border-slate-800/80 border-dashed text-slate-400'}`}>
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold font-mono ${player2 ? 'bg-purple-500 text-white shadow-md' : 'bg-slate-900 border border-slate-800 text-slate-500'}`}>
                 P2
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-slate-400">Waiting…</p>
-                <p className="text-xs text-slate-600">Player 2 Slot</p>
+                <p className={`text-sm font-bold ${player2 ? 'text-white' : 'text-slate-400'}`}>
+                  {player2 ? player2.username : 'Waiting…'}
+                </p>
+                <p className={`text-xs ${player2 ? 'text-purple-300 font-semibold' : 'text-slate-600'}`}>
+                  {player2 ? 'Player 2 Joined' : 'Player 2 Slot'}
+                </p>
               </div>
             </div>
           </div>
@@ -203,11 +242,15 @@ export default function LobbyPage() {
         {/* Start Match Button */}
         <div className="w-full max-w-2xl">
           <button
-            disabled
-            className="w-full py-4 px-6 rounded-2xl font-bold text-slate-500 bg-slate-800/50 border border-slate-700/50 cursor-not-allowed flex items-center justify-center gap-2.5 transition-all duration-200 shadow-none"
+            disabled={!(player1 && player2)}
+            className={`w-full py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-2.5 transition-all duration-200 ${
+              (player1 && player2)
+                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white shadow-xl shadow-indigo-500/25 cursor-pointer transform hover:-translate-y-0.5'
+                : 'text-slate-500 bg-slate-800/50 border border-slate-700/50 cursor-not-allowed shadow-none'
+            }`}
           >
-            <Play className="w-5 h-5 text-slate-600" />
-            <span>Waiting for players…</span>
+            <Play className={`w-5 h-5 ${(player1 && player2) ? 'text-white fill-current' : 'text-slate-600'}`} />
+            <span>{(player1 && player2) ? 'Start Match' : 'Waiting for players…'}</span>
           </button>
         </div>
       </main>

@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/axios";
 import { Shield, Loader2, CheckCircle2, AlertCircle, ArrowLeft, Radio } from "lucide-react";
+import { getSocket, disconnectSocket } from "@/lib/socket";
 
 interface UserProfile {
   user_id: string;
@@ -26,6 +27,7 @@ function JoinContent() {
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<SessionData | null>(null);
+  const [assignedRole, setAssignedRole] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,11 +57,30 @@ function JoinContent() {
           setSession(sessionData);
           setLoading(false);
 
-          // Store session_id and session_code in sessionStorage for use in Slice 3
+          // Store session_id, session_code, and user_id in sessionStorage for use in Slice 3
           if (typeof window !== "undefined" && window.sessionStorage) {
             sessionStorage.setItem("session_id", sessionData.session_id);
             sessionStorage.setItem("session_code", sessionData.session_code);
+            sessionStorage.setItem("user_id", meRes.data.user_id);
           }
+
+          // Connect socket and emit session:join
+          const socket = getSocket();
+          const initialRole = "player1"; // For now, hardcode role as 'player1' for first joiner as instructed
+          setAssignedRole(initialRole);
+
+          socket.emit("session:join", {
+            session_code: sessionData.session_code,
+            user_id: meRes.data.user_id,
+            username: meRes.data.username,
+            role: initialRole,
+          });
+
+          socket.on("session:player_joined", (data: { user_id: string; username: string; role: string }) => {
+            if (data.user_id === meRes.data.user_id) {
+              setAssignedRole(data.role);
+            }
+          });
         }
       } catch (err: any) {
         if (err.response && err.response.status === 401) {
@@ -77,6 +98,9 @@ function JoinContent() {
 
     return () => {
       isMounted = false;
+      const socket = getSocket();
+      socket.off("session:player_joined");
+      disconnectSocket();
     };
   }, [token, router]);
 
@@ -139,8 +163,39 @@ function JoinContent() {
         </p>
       </div>
 
+      {/* Role and Key Controls Display */}
+      {assignedRole ? (
+        <div className={`border rounded-2xl p-6 relative overflow-hidden mb-6 transition-all duration-300 ${
+          assignedRole === 'player1'
+            ? 'bg-indigo-950/60 border-indigo-500/40 shadow-xl shadow-indigo-500/10'
+            : 'bg-purple-950/60 border-purple-500/40 shadow-xl shadow-purple-500/10'
+        }`}>
+          <div className="flex flex-col items-center justify-center gap-3">
+            <span className={`px-4 py-1.5 rounded-full font-extrabold text-sm uppercase tracking-wider shadow-md ${
+              assignedRole === 'player1'
+                ? 'bg-indigo-500 text-white shadow-indigo-500/30'
+                : 'bg-purple-500 text-white shadow-purple-500/30'
+            }`}>
+              {assignedRole === 'player1' ? 'Player 1' : 'Player 2'}
+            </span>
+            <h2 className="text-xl md:text-2xl font-black text-white tracking-tight mt-1">
+              {assignedRole === 'player1'
+                ? 'You are Player 1 (Keys: A / S / D)'
+                : 'You are Player 2 (Keys: J / K / L)'}
+            </h2>
+            <div className="flex items-center justify-center gap-3 my-2">
+              {(assignedRole === 'player1' ? ['A', 'S', 'D'] : ['J', 'K', 'L']).map((key) => (
+                <div key={key} className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-700 font-mono font-black text-xl text-white flex items-center justify-center shadow-inner">
+                  {key}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {/* Large Status Message with Animated Pulsing Indicator */}
-      <div className="bg-indigo-950/40 border border-indigo-500/20 rounded-2xl p-6 relative overflow-hidden">
+      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
         <div className="flex flex-col items-center justify-center gap-3">
           <div className="relative flex items-center justify-center">
             <span className="absolute w-12 h-12 rounded-full bg-indigo-500/20 animate-ping" />
