@@ -4,7 +4,11 @@ let socket: Socket | null = null;
 
 export function getSocket(): Socket {
   if (!socket) {
-    socket = io(process.env.NEXT_PUBLIC_API_URL!, {
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    if (apiUrl && !apiUrl.startsWith('http://') && !apiUrl.startsWith('https://') && !apiUrl.startsWith('/')) {
+      apiUrl = `https://${apiUrl}`;
+    }
+    socket = io(apiUrl, {
       withCredentials: true,
       transports: ['websocket', 'polling'],
     });

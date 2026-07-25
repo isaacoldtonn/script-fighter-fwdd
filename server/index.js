@@ -8,14 +8,19 @@ const sessionsRouter = require('./routes/sessions');
 
 const app = express();
 
+let frontendUrl = process.env.FRONTEND_URL || '';
+if (frontendUrl && !frontendUrl.startsWith('http://') && !frontendUrl.startsWith('https://')) {
+  frontendUrl = `https://${frontendUrl}`;
+}
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: frontendUrl,
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
 }));
 
 app.options('*', cors({
-  origin: process.env.FRONTEND_URL,
+  origin: frontendUrl,
   credentials: true,
 }));
 

@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+let apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+if (apiUrl && !apiUrl.startsWith('http://') && !apiUrl.startsWith('https://') && !apiUrl.startsWith('/')) {
+  apiUrl = `https://${apiUrl}`;
+}
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: apiUrl,
   withCredentials: true,
 });
 

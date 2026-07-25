@@ -65,7 +65,10 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(500).json({ error: 'Failed to create session' });
     }
 
-    const frontendUrl = process.env.FRONTEND_URL;
+    let frontendUrl = process.env.FRONTEND_URL || '';
+    if (frontendUrl && !frontendUrl.startsWith('http://') && !frontendUrl.startsWith('https://')) {
+      frontendUrl = `https://${frontendUrl}`;
+    }
     const qr_url = `${frontendUrl}/join?token=${qr_token}`;
 
     return res.status(201).json({
