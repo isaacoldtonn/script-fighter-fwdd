@@ -48,6 +48,7 @@ export default function LobbyPage() {
 
           // Connect socket and join room as host
           const socket = getSocket();
+          if (typeof window !== 'undefined') (window as any).__socket = socket; // DEBUG: remove after testing
           const joinPayload = {
             session_code: sessionData.session_code,
             user_id: meRes.data.user_id,
