@@ -66,12 +66,27 @@ function JoinContent() {
 
           // Connect socket and emit session:join (without hardcoded role)
           const socket = getSocket();
-          if (typeof window !== 'undefined') (window as any).__socket = socket; // DEBUG: remove after testing
           const joinPayload = {
             session_code: sessionData.session_code,
             user_id: meRes.data.user_id,
             username: meRes.data.username,
           };
+
+          socket.on("session:player_joined", (data: { user_id: string; username: string; role: string }) => {
+            if (data.user_id === meRes.data.user_id) {
+              setAssignedRole(data.role);
+              const gameState = {
+                session_code: sessionData.session_code,
+                user_id: meRes.data.user_id,
+                username: meRes.data.username,
+                role: data.role,
+              };
+              if (typeof window !== "undefined" && window.sessionStorage) {
+                sessionStorage.setItem("sf_game_state", JSON.stringify(gameState));
+              }
+              router.push("/hud");
+            }
+          });
 
           if (socket.connected) {
             socket.emit("session:join", joinPayload);
@@ -80,12 +95,6 @@ function JoinContent() {
               socket.emit("session:join", joinPayload);
             });
           }
-
-          socket.on("session:player_joined", (data: { user_id: string; username: string; role: string }) => {
-            if (data.user_id === meRes.data.user_id) {
-              setAssignedRole(data.role);
-            }
-          });
         }
       } catch (err: any) {
         if (err.response && err.response.status === 401) {
