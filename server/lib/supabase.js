@@ -1,10 +1,10 @@
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || '';
+const supabaseUrl = process.env.SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || 'placeholder_service_key';
 
-if (!supabaseUrl || !supabaseServiceKey || supabaseUrl === 'your_supabase_project_url') {
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY || supabaseUrl === 'your_supabase_project_url') {
   console.warn('Warning: SUPABASE_URL or SUPABASE_SERVICE_KEY is missing or using default placeholder in environment.');
 }
 
