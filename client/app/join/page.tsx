@@ -64,17 +64,21 @@ function JoinContent() {
             sessionStorage.setItem("user_id", meRes.data.user_id);
           }
 
-          // Connect socket and emit session:join
+          // Connect socket and emit session:join (without hardcoded role)
           const socket = getSocket();
-          const initialRole = "player1"; // For now, hardcode role as 'player1' for first joiner as instructed
-          setAssignedRole(initialRole);
-
-          socket.emit("session:join", {
+          const joinPayload = {
             session_code: sessionData.session_code,
             user_id: meRes.data.user_id,
             username: meRes.data.username,
-            role: initialRole,
-          });
+          };
+
+          if (socket.connected) {
+            socket.emit("session:join", joinPayload);
+          } else {
+            socket.on("connect", () => {
+              socket.emit("session:join", joinPayload);
+            });
+          }
 
           socket.on("session:player_joined", (data: { user_id: string; username: string; role: string }) => {
             if (data.user_id === meRes.data.user_id) {

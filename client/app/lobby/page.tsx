@@ -48,21 +48,20 @@ export default function LobbyPage() {
 
           // Connect socket and join room as host
           const socket = getSocket();
-          socket.on("connect", () => {
-            console.log("[lobby/page.tsx] Socket connected! Socket ID:", socket.id);
-          });
-          console.log("[lobby/page.tsx] Emitting session:join ->", {
+          const joinPayload = {
             session_code: sessionData.session_code,
             user_id: meRes.data.user_id,
             username: meRes.data.username,
             role: "host",
-          });
-          socket.emit("session:join", {
-            session_code: sessionData.session_code,
-            user_id: meRes.data.user_id,
-            username: meRes.data.username,
-            role: "host",
-          });
+          };
+
+          if (socket.connected) {
+            socket.emit("session:join", joinPayload);
+          } else {
+            socket.on("connect", () => {
+              socket.emit("session:join", joinPayload);
+            });
+          }
 
           socket.on("session:player_joined", ({ user_id, username, role }: { user_id: string; username: string; role: string }) => {
             console.log("[lobby/page.tsx] session:player_joined listener fired! Payload:", { user_id, username, role });
