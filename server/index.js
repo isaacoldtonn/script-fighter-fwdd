@@ -7,6 +7,8 @@ require('dotenv').config();
 
 const authRouter = require('./routes/auth');
 const sessionsRouter = require('./routes/sessions');
+const matchesRouter = require('./routes/matches');
+const questionsRouter = require('./routes/questions');
 
 const app = express();
 
@@ -32,6 +34,8 @@ app.use(cookieParser());
 // Mount routers
 app.use('/api/auth', authRouter);
 app.use('/api/sessions', sessionsRouter);
+app.use('/api/matches', matchesRouter);
+app.use('/api/questions', questionsRouter);
 
 const server = http.createServer(app);
 const io = new Server(server, {
