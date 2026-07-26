@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "react-qr-code";
 import api from "@/lib/axios";
+import NavBar from "@/components/NavBar";
 import { Shield, Users, Loader2, Play, QrCode as QrIcon, AlertCircle } from "lucide-react";
 import { getSocket, disconnectSocket } from "@/lib/socket";
 
@@ -11,6 +12,7 @@ interface UserProfile {
   user_id: string;
   username: string;
   email: string;
+  profile_picture_url?: string | null;
 }
 
 interface SessionData {
@@ -171,35 +173,43 @@ export default function LobbyPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 flex flex-col justify-center items-center p-4">
-        <div className="flex flex-col items-center gap-4 text-indigo-400 animate-pulse">
-          <Loader2 className="w-12 h-12 animate-spin text-indigo-500" />
-          <p className="text-lg font-semibold text-white tracking-wide">Creating match lobby...</p>
+      <>
+        <NavBar currentUser={user} />
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 flex flex-col justify-center items-center p-4 pt-16">
+          <div className="flex flex-col items-center gap-4 text-indigo-400 animate-pulse">
+            <Loader2 className="w-12 h-12 animate-spin text-indigo-500" />
+            <p className="text-lg font-semibold text-white tracking-wide">Creating match lobby...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (error || !session || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 flex flex-col justify-center items-center p-4">
-        <div className="max-w-md w-full bg-slate-900/80 border border-red-500/30 rounded-2xl p-8 text-center backdrop-blur-xl shadow-2xl">
-          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">Lobby Error</h2>
-          <p className="text-slate-400 text-sm mb-6">{error || "Could not initialize lobby session."}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-500/25"
-          >
-            Retry
-          </button>
+      <>
+        <NavBar currentUser={user} />
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 flex flex-col justify-center items-center p-4 pt-16">
+          <div className="max-w-md w-full bg-slate-900/80 border border-red-500/30 rounded-2xl p-8 text-center backdrop-blur-xl shadow-2xl">
+            <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-white mb-2">Lobby Error</h2>
+            <p className="text-slate-400 text-sm mb-6">{error || "Could not initialize lobby session."}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-500/25"
+            >
+              Retry
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 flex flex-col selection:bg-indigo-500 selection:text-white">
+    <>
+    <NavBar currentUser={user} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 flex flex-col selection:bg-indigo-500 selection:text-white pt-16">
       {/* Background glow effects */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -416,5 +426,6 @@ export default function LobbyPage() {
         )}
       </main>
     </div>
+    </>
   );
 }

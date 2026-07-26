@@ -9,7 +9,7 @@ router.get('/', verifyToken, async (req, res) => {
   try {
     const { data: rows, error } = await supabase
       .from('leaderboard')
-      .select('user_id, rank, wins, total_matches, win_rate, xp, users(username)')
+      .select('user_id, rank, wins, total_matches, win_rate, xp, users(username, profile_picture_url, description)')
       .order('rank', { ascending: true })
       .limit(50);
 
@@ -21,6 +21,8 @@ router.get('/', verifyToken, async (req, res) => {
     const formatted = (rows || []).map((row) => ({
       user_id: row.user_id,
       username: row.users?.username || 'Unknown',
+      profile_picture_url: row.users?.profile_picture_url || null,
+      description: row.users?.description || '',
       rank: row.rank,
       wins: row.wins,
       total_matches: row.total_matches,

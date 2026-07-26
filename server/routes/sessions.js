@@ -82,6 +82,39 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
+// GET /api/sessions/join/:session_code: (public — no auth needed)
+// Placed ABOVE /:token so the single-segment token matcher below never
+// intercepts this two-segment path.
+router.get('/join/:session_code', async (req, res) => {
+  try {
+    const session_code = (req.params.session_code || '').toUpperCase();
+
+    const { data: session, error } = await supabase
+      .from('sessions')
+      .select('session_id, session_code, qr_token, status')
+      .eq('session_code', session_code)
+      .single();
+
+    if (error || !session) {
+      return res.status(404).json({ error: 'Session not found. Check the code and try again.' });
+    }
+
+    if (session.status !== 'waiting') {
+      return res.status(400).json({ error: 'This session has already started or ended.' });
+    }
+
+    return res.status(200).json({
+      session_id: session.session_id,
+      session_code: session.session_code,
+      qr_token: session.qr_token,
+      status: session.status,
+    });
+  } catch (err) {
+    console.error('Get session by code error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // GET /api/sessions/:token: (public — no auth needed)
 router.get('/:token', async (req, res) => {
   try {

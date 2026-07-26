@@ -57,7 +57,7 @@ export default function LoginPage() {
         if (middlewareRedirect && middlewareRedirect.startsWith("/") && !middlewareRedirect.startsWith("//")) {
           router.push(middlewareRedirect);
         } else {
-          router.push("/lobby");
+          router.push("/home");
         }
       }
     } catch (err: any) {

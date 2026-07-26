@@ -31,10 +31,11 @@ Correct + faster answer = deal HP damage to opponent. First to 0 HP loses.
 ## Tech Stack
 
 - **Frontend:** Next.js 14 (App Router), Tailwind CSS, Axios, socket.io-client,
-  react-hook-form, Zod, react-qr-code
+  react-hook-form, Zod, react-qr-code, react-hot-toast
 - **Backend:** Node.js + Express, Socket.io, bcrypt, jsonwebtoken, express-validator,
-  @supabase/supabase-js, qrcode, uuid, cookie-parser
+  @supabase/supabase-js, qrcode, uuid, cookie-parser, multer
 - **Database:** Supabase (PostgreSQL) — accessed ONLY from server, never from client
+- **Storage:** Supabase Storage bucket `avatars` (public) — profile pictures only
 - **Deployment:** Frontend → Vercel | Backend → Railway (port 8080) | DB → Supabase
 
 ---
@@ -45,29 +46,37 @@ Correct + faster answer = deal HP damage to opponent. First to 0 HP loses.
 script-fighter/
 ├── client/          ← Next.js frontend (deployed to Vercel)
 │   ├── app/
+│   │   ├── page.tsx                ← root: checks /api/auth/me, routes to /home or /login
 │   │   ├── (auth)/register/page.tsx
 │   │   ├── (auth)/login/page.tsx
+│   │   ├── home/page.tsx           ← main landing after login: host/join cards, quick stats
 │   │   ├── lobby/page.tsx          ← host screen, keyboard listener lives here
 │   │   ├── join/page.tsx           ← QR landing page
 │   │   ├── hud/page.tsx            ← player mobile game screen
 │   │   ├── result/round/page.tsx   ← post-round feedback
 │   │   ├── result/match/page.tsx   ← match end summary
 │   │   ├── history/page.tsx
-│   │   └── leaderboard/page.tsx
+│   │   ├── leaderboard/page.tsx
+│   │   └── profile/page.tsx        ← own profile: avatar/info/password edit cards
+│   ├── components/
+│   │   ├── NavBar.tsx              ← fixed top bar on every protected page, mobile hamburger
+│   │   ├── UserAvatar.tsx          ← picture or initials-on-color-hash fallback
+│   │   └── UserProfileModal.tsx    ← read-only public profile popup (opened from leaderboard rows)
 │   ├── lib/
 │   │   ├── axios.ts                ← singleton Axios instance, baseURL from env
 │   │   └── socket.ts               ← singleton Socket.io client
 │   ├── hooks/useSocket.ts
-│   └── middleware.ts               ← route protection (JWT cookie check)
+│   └── middleware.ts               ← route protection (sf_authed marker cookie check — see Critical Rules)
 │
 ├── server/          ← Node.js + Express + Socket.io (deployed to Railway)
 │   ├── index.js                    ← listens on port 8080 (Railway default)
 │   ├── routes/
 │   │   ├── auth.js                 ← register, login, logout, /me
-│   │   ├── sessions.js             ← create session, validate QR token
+│   │   ├── sessions.js             ← create session, validate QR token, join-by-code
 │   │   ├── matches.js              ← create match, update result, match history
 │   │   ├── questions.js            ← random question (correct_option_index NEVER sent to client)
-│   │   └── leaderboard.js
+│   │   ├── leaderboard.js          ← top 50 by rank, includes avatar/description per row
+│   │   └── users.js                ← match history, public profile, profile edit (info/password/avatar)
 │   ├── middleware/verifyToken.js   ← JWT validation middleware
 │   ├── socket/gameHandler.js       ← ALL Socket.io game logic lives here
 │   └── lib/supabase.js             ← Supabase service-role client
@@ -83,7 +92,8 @@ script-fighter/
 
 All PKs are UUID (gen_random_uuid()). All FKs have ON DELETE CASCADE.
 
-- **USERS:** user_id, username, email, password_hash, total_wins, created_at
+- **USERS:** user_id, username, email, password_hash, total_wins, created_at,
+  profile_picture_url (VARCHAR(500), nullable), description (TEXT, default '')
 - **SESSIONS:** session_id, host_user_id→USERS, session_code, qr_token,
   status ('waiting'/'active'/'ended'), created_at, ended_at
 - **MATCHES:** match_id, session_id→SESSIONS, player1_id→USERS, player2_id→USERS,
@@ -111,15 +121,17 @@ All PKs are UUID (gen_random_uuid()). All FKs have ON DELETE CASCADE.
 | POST | /api/auth/logout | JWT | Clear cookie |
 | GET | /api/auth/me | JWT | Get current user |
 | POST | /api/sessions | JWT | Create session + QR token |
+| GET | /api/sessions/join/:session_code | — | Look up a session by its human-readable code (used by /home's join form). Must stay registered ABOVE /:token. |
 | GET | /api/sessions/:token | — | Validate QR token |
 | PATCH | /api/sessions/:id | JWT | Update session status |
 | POST | /api/matches | — | Create match record |
 | PATCH | /api/matches/:id | — | Update match result |
 | POST | /api/matches/:id/rounds | — | Insert round record |
-| GET | /api/users/:id/matches | JWT | Match history (paginated) |
+| GET | /api/users/:id/matches | JWT | Match history (paginated); caller must own :id (403 otherwise) |
+| GET | /api/users/:id/public-profile | — | Public profile + rank/xp/win_rate for any user_id (used by /profile and UserProfileModal) |
+| PATCH | /api/users/:id/profile | JWT | Update profile info, change password, OR upload avatar — one type per request, caller must own :id |
 | GET | /api/questions/random | JWT | Random question (NO correct_option_index) |
-| GET | /api/leaderboard | JWT | Top 50 by XP |
-| GET | /api/users/:id/profile | JWT | User profile + rank |
+| GET | /api/leaderboard | JWT | Top 50 by rank; each row now includes profile_picture_url and description |
 
 ---
 
@@ -147,7 +159,22 @@ All PKs are UUID (gen_random_uuid()). All FKs have ON DELETE CASCADE.
 - **Supabase:** only accessed from server/lib/supabase.js using service-role key
 - **Client never talks to Supabase directly**
 - **Axios interceptor:** only redirects to /login on 401 if NOT already on /login or /register
-- **/join and /login are NOT in the protected middleware routes**
+- **/join is public in middleware; /login and /register are "auth only"** (redirect to
+  /home if already logged in). Everything else, including /home, is protected by default.
+- **middleware.ts cannot read sf_token.** It's set cross-site by the Railway backend
+  (`sameSite: none`), and Next.js middleware only sees cookies attached to requests on
+  its own origin — a cross-site Set-Cookie is invisible to it. Instead, the client sets
+  a same-origin, non-httpOnly marker cookie `sf_authed=1` right after a successful login
+  (see login page and NavBar's logout handler, which clears it). `sf_authed` is a UI
+  routing signal ONLY — never used for actual authorization. Real auth is still enforced
+  exclusively by verifyToken on every API call.
+- **PATCH /api/users/:id/profile is multipart-aware.** It runs `multer` (memory storage,
+  2MB limit, JPEG/PNG/WEBP/GIF only) ahead of the handler; multer no-ops on non-multipart
+  requests so the same route also accepts plain JSON for the info/password update types.
+  Dispatch order in the handler is: `req.file` present → avatar upload; else
+  `current_password`/`new_password` present → password change; else → profile info update.
+- **avatars Storage bucket must be public** with an authenticated INSERT/UPDATE policy and
+  a public SELECT policy, or avatar upload/display breaks even though the API call succeeds.
 
 ---
 
@@ -200,6 +227,20 @@ _(none currently — see Fixed Bugs below)_
 
 ## Fixed Bugs
 
+- **Login redirect loop (`/login?redirect=%2Flobby` stuck on login) (fixed):** middleware.ts
+  was checking for `sf_token`, which it can never see (see Critical Rules above) — every
+  protected route bounced straight back to /login, even immediately after a successful
+  login. Fixed by introducing the `sf_authed` same-origin marker cookie.
+- **Phones randomly stuck on "loading next question" (fixed):** the socket connection
+  (a module-level singleton) survives navigation between /hud and /result/round, but each
+  page only listens for socket events while its own component is mounted. The server
+  starts the next round on a fixed 5000ms timer from when it emits round:result; the
+  client's own 5s countdown on /result/round starts later (after the route transition),
+  so on slower devices round:question (or match:end, emitted with no delay) could fire
+  while the phone was on /result/round — which had no listener for it — and the event was
+  silently dropped. Fixed by adding a safety-net listener on /result/round that stashes
+  an early round:question/match:end via sessionStorage and jumps over immediately; /hud
+  checks for that stashed payload on mount instead of only waiting on a live event.
 - **D/L key "no answer" bug (fixed):** root cause was NOT in gameHandler.js — the
   key mapping and server-side round logic were correct all along (1-based
   option_index 1/2/3 throughout). The actual bug was in
@@ -221,8 +262,17 @@ _(none currently — see Fixed Bugs below)_
 - Slice 4: Game loop server-side (gameHandler.js) ✅
 - Slice 5: /hud, keyboard controller in /lobby ✅
 - Slice 6: /result/round, /result/match ✅
+- Slice 7: /history, /leaderboard, Next.js middleware route protection ✅
+- Slice 8: /home landing page, join-by-code, NavBar + UserAvatar + UserProfileModal,
+  /profile (avatar upload, info edit, password change), profile_picture_url/description
+  on USERS ✅ (code complete; see Remaining Work for the one manual step still needed)
 - Deployment: Vercel + Railway live ✅
 
 ## Remaining Work
 
-- Slice 7: /history, /leaderboard, Next.js middleware route protection
+- Create the `avatars` Storage bucket in Supabase (public, with the INSERT/UPDATE/SELECT
+  policies described in Critical Rules) — avatar upload will fail without it. Everything
+  else in Slice 8 works without this step.
+- Manually click through the browser-only behaviors that couldn't be verified without a
+  live browser: drag-and-drop upload, mobile hamburger collapse, modal Escape/backdrop
+  close, and avatar upload end-to-end once the bucket exists.

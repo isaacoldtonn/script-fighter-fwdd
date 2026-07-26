@@ -4,6 +4,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
+import NavBar from "@/components/NavBar";
+import UserAvatar from "@/components/UserAvatar";
 import {
   Shield,
   Swords,
@@ -17,10 +19,17 @@ import {
   History as HistoryIcon,
 } from "lucide-react";
 
+interface CurrentUser {
+  user_id: string;
+  username: string;
+  profile_picture_url?: string | null;
+}
+
 interface MatchRecord {
   match_id: string;
   session_id: string;
   opponent_username: string;
+  opponent_profile_picture_url?: string | null;
   result: "win" | "loss" | "draw";
   my_final_hp: number;
   opponent_final_hp: number;
@@ -39,6 +48,7 @@ const LIMIT = 10;
 
 export default function HistoryPage() {
   const router = useRouter();
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
   const [data, setData] = useState<MatchesResponse | null>(null);
@@ -53,6 +63,7 @@ export default function HistoryPage() {
         const meRes = await api.get("/api/auth/me");
         if (isMounted) {
           setUserId(meRes.data.user_id);
+          setCurrentUser(meRes.data);
         }
       } catch (err) {
         router.push("/login");
@@ -120,7 +131,9 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white p-4 sm:p-6 selection:bg-indigo-500 selection:text-white">
+    <>
+    <NavBar currentUser={currentUser} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white p-4 sm:p-6 pt-24 selection:bg-indigo-500 selection:text-white">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -149,9 +162,22 @@ export default function HistoryPage() {
 
         {/* Content */}
         {loading && !data ? (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-            <Loader2 className="w-8 h-8 animate-spin mb-3 text-indigo-500" />
-            <p>Loading match history...</p>
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between gap-4 animate-pulse"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-full bg-slate-800 shrink-0" />
+                  <div className="space-y-1.5">
+                    <div className="h-3.5 w-28 bg-slate-800 rounded" />
+                    <div className="h-2.5 w-20 bg-slate-800/70 rounded" />
+                  </div>
+                </div>
+                <div className="h-6 w-16 bg-slate-800 rounded-full" />
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium">
@@ -172,9 +198,11 @@ export default function HistoryPage() {
                   className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-lg"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
-                      <Swords className="w-4 h-4" />
-                    </div>
+                    <UserAvatar
+                      size="sm"
+                      username={m.opponent_username}
+                      profile_picture_url={m.opponent_profile_picture_url}
+                    />
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-white truncate">
                         vs {m.opponent_username}
@@ -223,5 +251,6 @@ export default function HistoryPage() {
         )}
       </div>
     </div>
+    </>
   );
 }

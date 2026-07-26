@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// /join and /login (and /register) are intentionally public — a player may
-// scan the QR code or land on auth pages before ever having a session cookie.
-const PUBLIC_PATHS = ["/login", "/register", "/join"];
+// /join is always public. /login and /register are "auth only" — an already
+// authenticated browser gets bounced to /home instead of seeing the form
+// again. Everything else (including /home) requires the sf_authed marker.
+const AUTH_ONLY_PATHS = ["/login", "/register"];
+const PUBLIC_PATHS = ["/join"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -11,7 +13,6 @@ export function middleware(request: NextRequest) {
   const isPublic = PUBLIC_PATHS.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`)
   );
-
   if (isPublic) {
     return NextResponse.next();
   }
@@ -22,9 +23,21 @@ export function middleware(request: NextRequest) {
   // marker the client sets right after a successful login purely so this
   // middleware has something to check; actual auth is still enforced by the
   // server's verifyToken on every API call.
-  const authedMarker = request.cookies.get("sf_authed");
+  const isAuthed = !!request.cookies.get("sf_authed");
 
-  if (!authedMarker) {
+  const isAuthOnly = AUTH_ONLY_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
+
+  if (isAuthOnly) {
+    if (isAuthed) {
+      return NextResponse.redirect(new URL("/home", request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Everything else is protected.
+  if (!isAuthed) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);

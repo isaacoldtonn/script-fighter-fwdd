@@ -170,7 +170,7 @@ router.get('/me', verifyToken, async (req, res) => {
   try {
     const { data: user, error } = await supabase
       .from('users')
-      .select('user_id, username, email, total_wins, created_at')
+      .select('user_id, username, email, total_wins, created_at, profile_picture_url, description')
       .eq('user_id', req.user.user_id)
       .single();
 
@@ -184,6 +184,8 @@ router.get('/me', verifyToken, async (req, res) => {
       email: user.email,
       total_wins: user.total_wins,
       created_at: user.created_at,
+      profile_picture_url: user.profile_picture_url,
+      description: user.description,
     });
   } catch (err) {
     console.error('Get me error:', err);
