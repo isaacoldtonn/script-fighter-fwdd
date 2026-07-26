@@ -82,6 +82,27 @@ export default function HudPage() {
     const { session_code, user_id, username, role } = parsedState;
     const socket = getSocket();
 
+    // If /result/round already caught the next round's question (or the match
+    // ending) before we mounted, apply it immediately instead of waiting on a
+    // live socket event that has already fired and won't fire again.
+    const pendingQuestionRaw = sessionStorage.getItem("sf_pending_question");
+    if (pendingQuestionRaw) {
+      sessionStorage.removeItem("sf_pending_question");
+      try {
+        const pendingQuestion: QuestionData = JSON.parse(pendingQuestionRaw);
+        questionRef.current = pendingQuestion;
+        currentRoundNumberRef.current = pendingQuestion.round_number;
+        setIsReconnecting(false);
+        setQuestion(pendingQuestion);
+        setCurrentRoundNumber(pendingQuestion.round_number);
+        setPhase("question");
+        setRoundStartTime(pendingQuestion.timestamp_ms || Date.now());
+        setRoundResult(null);
+      } catch (e) {
+        // fall through to normal socket-driven flow
+      }
+    }
+
     const joinPayload = { session_code, user_id, username, role };
     if (socket.connected) {
       socket.emit("session:join", joinPayload);

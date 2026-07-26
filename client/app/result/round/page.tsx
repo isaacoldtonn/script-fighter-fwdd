@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getSocket } from "@/lib/socket";
 import { Shield, Loader2, CheckCircle2, XCircle, HelpCircle, Clock, User, Swords, Sparkles } from "lucide-react";
 
 interface GameState {
@@ -87,6 +88,36 @@ export default function RoundResultPage() {
       isMounted = false;
       clearInterval(timer);
       clearTimeout(redirectTimeout);
+    };
+  }, [router]);
+
+  // Safety net: the server starts the next round on its own 5s timer, independent
+  // of this page's countdown. If round:question (or match:end) arrives while we're
+  // still on this screen, there's no listener for it on /hud yet — stash it and
+  // jump over early instead of letting the event get dropped.
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleEarlyQuestion = (data: unknown) => {
+      if (typeof window !== "undefined" && window.sessionStorage) {
+        sessionStorage.setItem("sf_pending_question", JSON.stringify(data));
+      }
+      router.push("/hud");
+    };
+
+    const handleEarlyMatchEnd = (data: unknown) => {
+      if (typeof window !== "undefined" && window.sessionStorage) {
+        sessionStorage.setItem("sf_match_result", JSON.stringify(data));
+      }
+      router.push("/result/match");
+    };
+
+    socket.on("round:question", handleEarlyQuestion);
+    socket.on("match:end", handleEarlyMatchEnd);
+
+    return () => {
+      socket.off("round:question", handleEarlyQuestion);
+      socket.off("match:end", handleEarlyMatchEnd);
     };
   }, [router]);
 
