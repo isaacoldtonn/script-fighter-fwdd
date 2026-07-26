@@ -17,25 +17,44 @@ module.exports = function(io) {
     //   Payload: { user_id, username, role }
     // If the room doesn't exist yet, create it: rooms[session_code] = { players: [] }
 
-    socket.on('session:join', ({ session_code, user_id, username, role: clientRole }) => {
+    socket.on('session:join', ({ session_code, user_id, username }) => {
+      // Step 1: Always add this socket to the room first
       socket.join(session_code);
-      if (!rooms[session_code]) rooms[session_code] = { players: [] };
 
-      const room = rooms[session_code];
-      let role = 'host';
-
-      if (clientRole === 'host') {
-        role = 'host';
-      } else if (room.players.length === 0) {
-        role = 'player1';
-      } else if (room.players.length === 1) {
-        role = 'player2';
+      if (!rooms[session_code]) {
+        rooms[session_code] = { players: [], matchStarted: false };
       }
+      const room = rooms[session_code];
+
+      // Step 2: Check if this user is already a player (reconnecting)
+      const existingPlayer = room.players.find(p => p.user_id === user_id);
+      if (existingPlayer) {
+        // Update their socket_id to the new socket
+        existingPlayer.socket_id = socket.id;
+        // Confirm back to this socket only — do not broadcast to whole room
+        socket.emit('session:player_joined', {
+          user_id,
+          username,
+          role: existingPlayer.role,
+        });
+        return;
+      }
+
+      // Step 3: New player joining for the first time
+      let role = 'host';
+      if (room.players.length === 0) role = 'player1';
+      else if (room.players.length === 1) role = 'player2';
 
       if (role === 'player1' || role === 'player2') {
-        room.players.push({ socket_id: socket.id, user_id, username, role });
+        room.players.push({
+          socket_id: socket.id,
+          user_id,
+          username,
+          role,
+        });
       }
 
+      // Broadcast to whole room so lobby updates
       io.to(session_code).emit('session:player_joined', { user_id, username, role });
     });
 
@@ -43,7 +62,13 @@ module.exports = function(io) {
     // Remove the player from rooms if they disconnect before the match starts.
     socket.on('disconnect', () => {
       for (const code in rooms) {
-        rooms[code].players = rooms[code].players.filter(p => p.socket_id !== socket.id);
+        const room = rooms[code];
+        // Only remove from players if match has NOT started yet
+        if (!room.matchStarted) {
+          room.players = room.players.filter(p => p.socket_id !== socket.id);
+        }
+        // If match is in progress, keep the player in the array
+        // They will reconnect and update their socket_id via session:join
       }
     });
 
@@ -55,6 +80,7 @@ module.exports = function(io) {
         console.error(`[gameHandler] Room ${session_code} not found on session:ready`);
         return;
       }
+      room.matchStarted = true;
 
       // Initialize room state for match
       room.match_id = null;
