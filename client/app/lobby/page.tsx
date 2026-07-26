@@ -41,20 +41,17 @@ export default function LobbyPage() {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      if (["a", "s", "d"].includes(key)) {
+      const keyMap: Record<string, number> = {
+        'a': 1, 's': 2, 'd': 3,
+        'j': 1, 'k': 2, 'l': 3,
+      };
+      if (["a", "s", "d", "j", "k", "l"].includes(key)) {
         e.preventDefault();
+        const player = ["a", "s", "d"].includes(key) ? "player1" : "player2";
         const socket = getSocket();
         socket.emit("round:key_strike", {
           session_code: session.session_code,
-          player: "player1",
-          key: key,
-        });
-      } else if (["j", "k", "l"].includes(key)) {
-        e.preventDefault();
-        const socket = getSocket();
-        socket.emit("round:key_strike", {
-          session_code: session.session_code,
-          player: "player2",
+          player: player,
           key: key,
         });
       }

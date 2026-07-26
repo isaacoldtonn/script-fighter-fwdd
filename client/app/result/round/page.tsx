@@ -68,7 +68,6 @@ export default function RoundResultPage() {
         setCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(timer);
-            router.push("/hud");
             return 0;
           }
           return prev - 1;
@@ -76,9 +75,16 @@ export default function RoundResultPage() {
       }
     }, 1000);
 
+    const redirectTimeout = setTimeout(() => {
+      if (isMounted) {
+        router.push("/hud");
+      }
+    }, 5000);
+
     return () => {
       isMounted = false;
       clearInterval(timer);
+      clearTimeout(redirectTimeout);
     };
   }, [router]);
 

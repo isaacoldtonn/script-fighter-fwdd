@@ -43,7 +43,9 @@ export default function HudPage() {
   const [roundStartTime, setRoundStartTime] = useState<number | null>(null);
   const [roundResult, setRoundResult] = useState<RoundResultData | null>(null);
   const [countdown, setCountdown] = useState<number>(5);
+  const [currentRoundNumber, setCurrentRoundNumber] = useState<number>(1);
   const questionRef = useRef<QuestionData | null>(null);
+  const currentRoundNumberRef = useRef<number>(1);
 
   useEffect(() => {
     let isMounted = true;
@@ -85,7 +87,9 @@ export default function HudPage() {
     const handleQuestion = (data: QuestionData) => {
       if (!isMounted) return;
       questionRef.current = data;
+      currentRoundNumberRef.current = data.round_number;
       setQuestion(data);
+      setCurrentRoundNumber(data.round_number);
       setPhase("question");
       setRoundStartTime(data.timestamp_ms || Date.now());
       setRoundResult(null);
@@ -109,30 +113,19 @@ export default function HudPage() {
         const currentQuestion = questionRef.current;
         const mergedResult = {
           ...data,
+          round_number: currentRoundNumberRef.current || currentQuestion?.round_number || 1,
           code_snippet: currentQuestion?.code_snippet || "",
           option_1: currentQuestion?.option_1 || "",
           option_2: currentQuestion?.option_2 || "",
           option_3: currentQuestion?.option_3 || "",
           difficulty: currentQuestion?.difficulty || "MEDIUM",
-          round_number: currentQuestion?.round_number || 1,
         };
         sessionStorage.setItem("sf_round_result", JSON.stringify(mergedResult));
       }
 
-      // Start 5 second countdown for redirect
-      setCountdown(5);
-      const timerInterval = setInterval(() => {
-        if (isMounted) {
-          setCountdown((prev) => Math.max(0, prev - 1));
-        }
-      }, 1000);
-
-      setTimeout(() => {
-        clearInterval(timerInterval);
-        if (isMounted) {
-          router.push("/result/round");
-        }
-      }, 5000);
+      if (isMounted) {
+        router.push("/result/round");
+      }
     };
 
     // Listener: match:end
