@@ -130,10 +130,10 @@ export default function RoundResultPage() {
   ];
 
   const getOptionText = (idx: number | null | undefined) => {
-    if (idx === null || idx === undefined || idx < 0 || idx >= options.length) {
+    if (idx === null || idx === undefined || idx < 1 || idx > options.length) {
       return null;
     }
-    return options[idx];
+    return options[idx - 1];
   };
 
   const myAnswerText = getOptionText(myAnswerIndex);
