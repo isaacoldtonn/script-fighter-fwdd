@@ -130,7 +130,21 @@ module.exports = function(io) {
     });
 
     // EVENT: round:key_strike
-    socket.on('round:key_strike', async ({ session_code, player, key }) => {
+    socket.on('round:key_strike', async (data) => {
+      console.log('round:key_strike received:', JSON.stringify(data));
+      const { session_code, player } = data || {};
+      const keyToOption = {
+        'a': 1, 's': 2, 'd': 3,
+        'j': 1, 'k': 2, 'l': 3,
+      };
+      const key = (data?.key || '').toLowerCase();
+      const optionIndex = keyToOption[key];
+      console.log(`Mapped key '${key}' to option index: ${optionIndex}`);
+      if (optionIndex === undefined || optionIndex === null) {
+        console.log('No mapping found for key — treating as no answer');
+        return;
+      }
+
       console.log(`[gameHandler] EVENT round:key_strike -> code: ${session_code}, player: ${player}, key: ${key}`);
       const room = rooms[session_code];
       if (!room || !room.current_question) {
@@ -143,24 +157,13 @@ module.exports = function(io) {
         return;
       }
 
-      const keyToOption = {
-        'a': 1, 's': 2, 'd': 3,
-        'j': 1, 'k': 2, 'l': 3,
-      };
-      const option_index = keyToOption[key?.toLowerCase()];
-      if (!option_index) {
-        console.log(`Unknown key received: ${key}`);
-        return;
-      }
-      const lowerKey = key ? key.toLowerCase() : '';
-
       const ms = room.round_start_time ? Date.now() - room.round_start_time : 0;
       room.answers[player] = {
-        option_index,
-        key: lowerKey,
+        option_index: optionIndex,
+        key: key,
         ms,
       };
-      console.log(`[gameHandler] Recorded answer for ${player} -> option_index: ${option_index}, ms: ${ms}`);
+      console.log(`[gameHandler] Recorded answer for ${player} -> option_index: ${optionIndex}, ms: ${ms}`);
 
       if (room.answers.player1 && room.answers.player2) {
         console.log(`[gameHandler] Both players answered in room ${session_code}! Resolving round...`);
@@ -318,6 +321,8 @@ module.exports = function(io) {
       player2_answer_index: ans2 ? ans2.option_index : null,
       player1_key: ans1 ? ans1.key : null,
       player2_key: ans2 ? ans2.key : null,
+      player1_response_ms: ans1 ? ans1.ms : null,
+      player2_response_ms: ans2 ? ans2.ms : null,
       damage_dealt: damage,
       player1_hp: room.player1_hp,
       player2_hp: room.player2_hp,

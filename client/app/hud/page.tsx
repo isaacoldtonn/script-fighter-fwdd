@@ -31,6 +31,8 @@ interface RoundResultData {
   explanation: string;
   player1_answer_index: number;
   player2_answer_index: number;
+  player1_response_ms?: number | null;
+  player2_response_ms?: number | null;
 }
 
 export default function HudPage() {

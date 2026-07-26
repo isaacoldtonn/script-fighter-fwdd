@@ -26,6 +26,8 @@ interface RoundResultData {
   option_3?: string;
   difficulty?: string;
   round_number?: number;
+  player1_response_ms?: number | null;
+  player2_response_ms?: number | null;
 }
 
 export default function RoundResultPage() {
@@ -103,6 +105,23 @@ export default function RoundResultPage() {
 
   const myAnswerIndex = isPlayer1 ? roundResult.player1_answer_index : roundResult.player2_answer_index;
   const opponentAnswerIndex = isPlayer1 ? roundResult.player2_answer_index : roundResult.player1_answer_index;
+
+  const formatTime = (ms: number | null | undefined) => {
+    if (!ms) return "No answer";
+    return `${(ms / 1000).toFixed(1)}s`;
+  };
+
+  const bothCorrect =
+    roundResult.player1_answer_index !== null &&
+    roundResult.player1_answer_index !== undefined &&
+    roundResult.player2_answer_index !== null &&
+    roundResult.player2_answer_index !== undefined &&
+    roundResult.player1_answer_index === roundResult.correct_option_index &&
+    roundResult.player2_answer_index === roundResult.correct_option_index;
+
+  const myResponseMs = isPlayer1 ? roundResult.player1_response_ms : roundResult.player2_response_ms;
+  const opponentResponseMs = isPlayer1 ? roundResult.player2_response_ms : roundResult.player1_response_ms;
+  const iWasRoundWinner = roundResult.round_winner_id === gameState.user_id;
 
   const options = [
     roundResult.option_1 || "Option 1",
@@ -212,6 +231,13 @@ export default function RoundResultPage() {
               <span>Your Answer</span>
             </label>
             {renderAnswerStatus(myAnswerText, isMyAnswerCorrect)}
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-gray-400 text-xs">⏱ Response time:</span>
+              <span className="text-white text-xs font-mono">{formatTime(myResponseMs)}</span>
+              {bothCorrect && iWasRoundWinner && (
+                <span className="text-yellow-400 text-xs font-bold">⚡ Faster!</span>
+              )}
+            </div>
           </div>
 
           {/* Opponent's Answer */}
@@ -221,6 +247,13 @@ export default function RoundResultPage() {
               <span>Opponent&apos;s Answer</span>
             </label>
             {renderAnswerStatus(opponentAnswerText, isOpponentAnswerCorrect)}
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-gray-400 text-xs">⏱ Response time:</span>
+              <span className="text-white text-xs font-mono">{formatTime(opponentResponseMs)}</span>
+              {bothCorrect && !iWasRoundWinner && (
+                <span className="text-yellow-400 text-xs font-bold">⚡ Faster!</span>
+              )}
+            </div>
           </div>
 
           {/* Correct Answer Reveal */}
@@ -234,6 +267,12 @@ export default function RoundResultPage() {
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />
             </div>
           </div>
+
+          {bothCorrect && (
+            <div className="text-center text-xs text-yellow-400 mt-3 bg-yellow-400/10 rounded-lg px-3 py-2">
+              ⚡ Both answered correctly — faster response wins the round
+            </div>
+          )}
         </div>
 
         {/* Explanation Box */}
