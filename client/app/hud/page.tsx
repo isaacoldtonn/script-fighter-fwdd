@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getSocket } from "@/lib/socket";
 import { Shield, Loader2, Radio, User, Swords, AlertCircle, Clock } from "lucide-react";
@@ -43,6 +43,7 @@ export default function HudPage() {
   const [roundStartTime, setRoundStartTime] = useState<number | null>(null);
   const [roundResult, setRoundResult] = useState<RoundResultData | null>(null);
   const [countdown, setCountdown] = useState<number>(5);
+  const questionRef = useRef<QuestionData | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -83,6 +84,7 @@ export default function HudPage() {
     // Listener: round:question
     const handleQuestion = (data: QuestionData) => {
       if (!isMounted) return;
+      questionRef.current = data;
       setQuestion(data);
       setPhase("question");
       setRoundStartTime(data.timestamp_ms || Date.now());
@@ -104,7 +106,17 @@ export default function HudPage() {
       }
 
       if (typeof window !== "undefined" && window.sessionStorage) {
-        sessionStorage.setItem("sf_round_result", JSON.stringify(data));
+        const currentQuestion = questionRef.current;
+        const mergedResult = {
+          ...data,
+          code_snippet: currentQuestion?.code_snippet || "",
+          option_1: currentQuestion?.option_1 || "",
+          option_2: currentQuestion?.option_2 || "",
+          option_3: currentQuestion?.option_3 || "",
+          difficulty: currentQuestion?.difficulty || "MEDIUM",
+          round_number: currentQuestion?.round_number || 1,
+        };
+        sessionStorage.setItem("sf_round_result", JSON.stringify(mergedResult));
       }
 
       // Start 5 second countdown for redirect
