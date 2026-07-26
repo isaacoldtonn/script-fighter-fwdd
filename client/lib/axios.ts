@@ -14,7 +14,14 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      window.location.href = '/login';
+      const path = window.location.pathname;
+      const isAuthPage = path === '/login' || path === '/register';
+      if (!isAuthPage) {
+        // Session expired/invalid — clear the middleware's same-origin marker
+        // too, otherwise it'll keep letting protected routes through.
+        document.cookie = 'sf_authed=; path=/; max-age=0';
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

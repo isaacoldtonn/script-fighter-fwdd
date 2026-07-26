@@ -16,9 +16,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get("sf_token");
+  // sf_token is the real session cookie, but it's set by the Railway backend
+  // (a different origin) via a cross-site Set-Cookie header — middleware runs
+  // on this app's own origin and can never see it. sf_authed is a same-origin
+  // marker the client sets right after a successful login purely so this
+  // middleware has something to check; actual auth is still enforced by the
+  // server's verifyToken on every API call.
+  const authedMarker = request.cookies.get("sf_authed");
 
-  if (!token) {
+  if (!authedMarker) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);

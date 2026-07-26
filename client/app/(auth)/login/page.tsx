@@ -41,10 +41,21 @@ export default function LoginPage() {
       });
 
       if (response.status === 200) {
+        // Same-origin marker so the Next.js middleware can tell this browser
+        // just authenticated — see middleware.ts for why sf_token itself
+        // (set cross-site by the Railway backend) can't be used for this.
+        document.cookie = "sf_authed=1; path=/; max-age=3600; SameSite=Lax";
+
         const redirectTo = sessionStorage.getItem("sf_redirect_after_login");
         if (redirectTo) {
           sessionStorage.removeItem("sf_redirect_after_login");
           window.location.href = redirectTo;
+          return;
+        }
+
+        const middlewareRedirect = new URLSearchParams(window.location.search).get("redirect");
+        if (middlewareRedirect && middlewareRedirect.startsWith("/") && !middlewareRedirect.startsWith("//")) {
+          router.push(middlewareRedirect);
         } else {
           router.push("/lobby");
         }
