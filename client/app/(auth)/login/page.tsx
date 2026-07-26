@@ -41,7 +41,13 @@ export default function LoginPage() {
       });
 
       if (response.status === 200) {
-        router.push("/lobby");
+        const redirectTo = sessionStorage.getItem("sf_redirect_after_login");
+        if (redirectTo) {
+          sessionStorage.removeItem("sf_redirect_after_login");
+          window.location.href = redirectTo;
+        } else {
+          router.push("/lobby");
+        }
       }
     } catch (err: any) {
       if (err.response && err.response.status === 401) {

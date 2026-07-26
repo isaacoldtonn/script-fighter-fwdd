@@ -98,6 +98,7 @@ function JoinContent() {
         }
       } catch (err: any) {
         if (err.response && err.response.status === 401) {
+          sessionStorage.setItem("sf_redirect_after_login", window.location.href);
           router.push("/login");
         } else {
           if (isMounted) {
