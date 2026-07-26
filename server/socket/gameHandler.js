@@ -17,7 +17,7 @@ module.exports = function(io) {
     //   Payload: { user_id, username, role }
     // If the room doesn't exist yet, create it: rooms[session_code] = { players: [] }
 
-    socket.on('session:join', ({ session_code, user_id, username }) => {
+    socket.on('session:join', ({ session_code, user_id, username, role: clientRole }) => {
       // Step 1: Always add this socket to the room first
       socket.join(session_code);
 
@@ -37,6 +37,12 @@ module.exports = function(io) {
           username,
           role: existingPlayer.role,
         });
+        return;
+      }
+
+      // If client explicitly says host, do not add to players array
+      if (clientRole === 'host') {
+        socket.emit('session:player_joined', { user_id, username, role: 'host' });
         return;
       }
 
@@ -137,22 +143,16 @@ module.exports = function(io) {
         return;
       }
 
-      const lowerKey = key ? key.toLowerCase() : '';
-      let option_index = null;
-      if (player === 'player1') {
-        if (lowerKey === 'a') option_index = 1;
-        else if (lowerKey === 's') option_index = 2;
-        else if (lowerKey === 'd') option_index = 3;
-      } else if (player === 'player2') {
-        if (lowerKey === 'j') option_index = 1;
-        else if (lowerKey === 'k') option_index = 2;
-        else if (lowerKey === 'l') option_index = 3;
-      }
-
+      const keyToOption = {
+        'a': 1, 's': 2, 'd': 3,
+        'j': 1, 'k': 2, 'l': 3,
+      };
+      const option_index = keyToOption[key?.toLowerCase()];
       if (!option_index) {
-        console.warn(`[gameHandler] Invalid key '${key}' for player '${player}'`);
+        console.log(`Unknown key received: ${key}`);
         return;
       }
+      const lowerKey = key ? key.toLowerCase() : '';
 
       const ms = room.round_start_time ? Date.now() - room.round_start_time : 0;
       room.answers[player] = {

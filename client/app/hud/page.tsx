@@ -44,6 +44,12 @@ export default function HudPage() {
   const [roundResult, setRoundResult] = useState<RoundResultData | null>(null);
   const [countdown, setCountdown] = useState<number>(5);
   const [currentRoundNumber, setCurrentRoundNumber] = useState<number>(1);
+  const [isReconnecting, setIsReconnecting] = useState<boolean>(() => {
+    if (typeof window !== "undefined" && window.sessionStorage) {
+      return !!sessionStorage.getItem("sf_round_result");
+    }
+    return false;
+  });
   const questionRef = useRef<QuestionData | null>(null);
   const currentRoundNumberRef = useRef<number>(1);
 
@@ -86,6 +92,7 @@ export default function HudPage() {
     // Listener: round:question
     const handleQuestion = (data: QuestionData) => {
       if (!isMounted) return;
+      setIsReconnecting(false);
       questionRef.current = data;
       currentRoundNumberRef.current = data.round_number;
       setQuestion(data);
@@ -183,33 +190,42 @@ export default function HudPage() {
 
       {/* PHASE: WAITING */}
       {phase === "waiting" && (
-        <div className="flex-1 flex flex-col items-center justify-center text-center animate-fade-in z-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold mb-6 uppercase tracking-wider shadow-sm">
-            <Shield className="w-4 h-4" />
-            <span>Script Fighter Arena</span>
+        isReconnecting ? (
+          <div className="flex-1 flex items-center justify-center min-h-screen z-10 animate-fade-in">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4" />
+              <p className="text-gray-400">Loading next round...</p>
+            </div>
           </div>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-center animate-fade-in z-10">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold mb-6 uppercase tracking-wider shadow-sm">
+              <Shield className="w-4 h-4" />
+              <span>Script Fighter Arena</span>
+            </div>
 
-          <div className="relative flex items-center justify-center mb-6">
-            <span className="absolute w-16 h-16 rounded-full bg-indigo-500/20 animate-ping" />
-            <span className="relative w-12 h-12 rounded-full bg-indigo-500/30 border border-indigo-500/50 flex items-center justify-center text-indigo-400 shadow-lg shadow-indigo-500/20">
-              <Radio className="w-6 h-6 animate-pulse" />
-            </span>
+            <div className="relative flex items-center justify-center mb-6">
+              <span className="absolute w-16 h-16 rounded-full bg-indigo-500/20 animate-ping" />
+              <span className="relative w-12 h-12 rounded-full bg-indigo-500/30 border border-indigo-500/50 flex items-center justify-center text-indigo-400 shadow-lg shadow-indigo-500/20">
+                <Radio className="w-6 h-6 animate-pulse" />
+              </span>
+            </div>
+
+            <h1 className="text-3xl font-extrabold tracking-tight text-white mb-2">
+              Script Fighter
+            </h1>
+            <p className="text-indigo-200 font-bold text-lg mb-2">
+              Waiting for host to start…
+            </p>
+            <p className="text-slate-400 text-xs max-w-xs leading-relaxed">
+              You are connected as <span className="text-white font-bold">{gameState.username}</span> ({isPlayer1 ? "Player 1" : "Player 2"}). Keep this screen open!
+            </p>
+
+            <div className="mt-8 px-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800 font-mono text-xs text-slate-400">
+              Session: <span className="text-indigo-400 font-bold">{gameState.session_code}</span>
+            </div>
           </div>
-
-          <h1 className="text-3xl font-extrabold tracking-tight text-white mb-2">
-            Script Fighter
-          </h1>
-          <p className="text-indigo-200 font-bold text-lg mb-2">
-            Waiting for host to start…
-          </p>
-          <p className="text-slate-400 text-xs max-w-xs leading-relaxed">
-            You are connected as <span className="text-white font-bold">{gameState.username}</span> ({isPlayer1 ? "Player 1" : "Player 2"}). Keep this screen open!
-          </p>
-
-          <div className="mt-8 px-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800 font-mono text-xs text-slate-400">
-            Session: <span className="text-indigo-400 font-bold">{gameState.session_code}</span>
-          </div>
-        </div>
+        )
       )}
 
       {/* PHASE: QUESTION OR ANSWERED */}

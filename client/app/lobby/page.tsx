@@ -37,30 +37,37 @@ export default function LobbyPage() {
   const [winnerUsername, setWinnerUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!matchStarted || !session) return;
+    if (!session) return;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+
+      if (!['a', 's', 'd', 'j', 'k', 'l'].includes(key)) return;
+
+      event.preventDefault();
+
+      if (!matchStarted) return;
+
       const keyMap: Record<string, number> = {
         'a': 1, 's': 2, 'd': 3,
         'j': 1, 'k': 2, 'l': 3,
       };
-      if (["a", "s", "d", "j", "k", "l"].includes(key)) {
-        e.preventDefault();
-        const player = ["a", "s", "d"].includes(key) ? "player1" : "player2";
-        const socket = getSocket();
-        socket.emit("round:key_strike", {
-          session_code: session.session_code,
-          player: player,
-          key: key,
-        });
-      }
+
+      const player = ['a', 's', 'd'].includes(key) ? 'player1' : 'player2';
+      const optionIndex = keyMap[key];
+
+      console.log(`Key: ${key} | Player: ${player} | Option: ${optionIndex}`);
+
+      getSocket().emit('round:key_strike', {
+        session_code: session.session_code,
+        player,
+        key,
+        timestamp_ms: Date.now(),
+      });
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [matchStarted, session]);
 
   const handleStartMatch = () => {
