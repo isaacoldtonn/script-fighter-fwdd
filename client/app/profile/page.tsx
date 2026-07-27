@@ -16,11 +16,6 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Trophy,
-  Swords,
-  Percent,
-  Hash,
-  Calendar,
 } from "lucide-react";
 
 interface CurrentUser {
@@ -98,7 +93,7 @@ function resizeImage(file: File, maxSize = 400): Promise<Blob> {
 }
 
 function passwordStrength(password: string): { score: number; label: string; color: string } {
-  if (!password) return { score: 0, label: "", color: "bg-slate-800" };
+  if (!password) return { score: 0, label: "", color: "bg-gray-200" };
   let score = 0;
   if (password.length >= 8) score++;
   if (/[A-Z]/.test(password)) score++;
@@ -106,10 +101,10 @@ function passwordStrength(password: string): { score: number; label: string; col
   if (/[^a-zA-Z0-9]/.test(password)) score++;
   if (password.length >= 12) score++;
 
-  if (score <= 2) return { score, label: "Weak", color: "bg-rose-500" };
-  if (score <= 3) return { score, label: "Okay", color: "bg-amber-500" };
-  if (score <= 4) return { score, label: "Good", color: "bg-emerald-500" };
-  return { score, label: "Strong", color: "bg-emerald-400" };
+  if (score <= 2) return { score, label: "Weak", color: "bg-sf-red" };
+  if (score <= 3) return { score, label: "Okay", color: "bg-sf-orange-lite" };
+  if (score <= 4) return { score, label: "Good", color: "bg-sf-teal" };
+  return { score, label: "Strong", color: "bg-emerald-500" };
 }
 
 export default function ProfilePage() {
@@ -307,8 +302,8 @@ export default function ProfilePage() {
 
   if (loading || !currentUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
+      <div className="min-h-screen sf-bg flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-sf-orange" />
       </div>
     );
   }
@@ -320,303 +315,300 @@ export default function ProfilePage() {
   return (
     <>
       <NavBar currentUser={currentUser} />
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white p-4 sm:p-6 pt-24 pb-16 selection:bg-indigo-500 selection:text-white">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
-          {/* LEFT — profile preview */}
-          <div className="bg-slate-900/80 border border-slate-800/80 rounded-3xl p-6 shadow-2xl backdrop-blur-xl h-fit">
-            <div className="flex flex-col items-center text-center">
-              <UserAvatar
-                username={currentUser.username}
-                profile_picture_url={avatarPreview || currentUser.profile_picture_url}
-                size="xl"
-              />
-              <h1 className="text-xl font-extrabold text-white mt-4">{currentUser.username}</h1>
-              {currentUser.description && (
-                <p className="text-sm text-slate-400 italic mt-1.5">{currentUser.description}</p>
-              )}
+      <div className="sf-bg min-h-screen relative overflow-hidden pt-14 md:pt-16 pb-16">
+        <div className="sf-watermark" style={{ top: "5%", right: "-5%" }}>
+          PROFILE
+        </div>
 
-              <div className="w-full h-px bg-slate-800 my-5" />
-
-              {stats && (
-                <div className="w-full space-y-2.5 text-left">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-400 flex items-center gap-1.5">
-                      <Swords className="w-3.5 h-3.5 text-indigo-400" /> Games Played
-                    </span>
-                    <span className="font-bold text-white">{stats.total_matches}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-400 flex items-center gap-1.5">
-                      <Trophy className="w-3.5 h-3.5 text-amber-400" /> Total Wins
-                    </span>
-                    <span className="font-bold text-white">{stats.total_wins}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-400 flex items-center gap-1.5">
-                      <Percent className="w-3.5 h-3.5 text-emerald-400" /> Win Rate
-                    </span>
-                    <span className="font-bold text-white">{stats.win_rate}%</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-400 flex items-center gap-1.5">
-                      <Hash className="w-3.5 h-3.5 text-purple-400" /> Global Rank
-                    </span>
-                    <span className="font-bold text-white">#{stats.rank || "—"}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-400">XP</span>
-                    <span className="font-mono font-bold text-indigo-300">{stats.xp}</span>
-                  </div>
-
-                  <div className="w-full h-px bg-slate-800 my-3" />
-
-                  <p className="text-xs text-slate-500 flex items-center gap-1.5 justify-center">
-                    <Calendar className="w-3.5 h-3.5" />
-                    Member since {formatDate(stats.created_at)}
-                  </p>
-                </div>
-              )}
-            </div>
+        <div className="relative z-10 max-w-5xl mx-auto px-6 py-12">
+          {/* Header */}
+          <div className="mb-8">
+            <span className="sf-badge sf-badge-black mb-3 block w-fit">Player Profile</span>
+            <h1 className="sf-section-title">My Profile</h1>
           </div>
 
-          {/* RIGHT — edit cards */}
-          <div className="space-y-6">
-            {/* Card 1 — Profile Picture */}
-            <div className="bg-slate-900/80 border border-slate-800/80 rounded-3xl p-6 shadow-2xl backdrop-blur-xl">
-              <h2 className="text-lg font-extrabold text-white mb-4 flex items-center gap-2">
-                <Camera className="w-4.5 h-4.5 text-indigo-400" />
-                Profile Picture
-              </h2>
-
-              <div className="flex flex-col sm:flex-row items-center gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* LEFT: Profile preview */}
+            <div className="md:col-span-1">
+              <div className="sf-card p-6 text-center mb-4">
                 <UserAvatar
                   username={currentUser.username}
                   profile_picture_url={avatarPreview || currentUser.profile_picture_url}
                   size="xl"
+                  className="mx-auto mb-4"
                 />
-
-                <div
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragActive(true);
-                  }}
-                  onDragLeave={() => setDragActive(false)}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`flex-1 w-full border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-colors ${
-                    dragActive ? "border-indigo-500 bg-indigo-500/10" : "border-slate-700 hover:border-slate-600"
-                  }`}
-                >
-                  <Upload className="w-6 h-6 text-slate-500 mx-auto mb-2" />
-                  <p className="text-sm font-semibold text-slate-300">Click to upload or drag & drop</p>
-                  <p className="text-xs text-slate-500 mt-1">JPEG, PNG, or WEBP — max 2MB</p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={(e) => handleFileSelected(e.target.files?.[0])}
-                  />
+                <div className="font-heading font-800 text-xl uppercase tracking-wide text-sf-black mb-1">
+                  {currentUser.username}
                 </div>
+                {currentUser.description && (
+                  <p className="font-body text-sm text-gray-500 italic mb-4">{currentUser.description}</p>
+                )}
+
+                {stats && (
+                  <div className="border-t-2 border-sf-gray-border pt-4 space-y-2 mt-4">
+                    {[
+                      ["Total Matches", stats.total_matches],
+                      ["Wins", stats.total_wins],
+                      ["Win Rate", `${stats.win_rate}%`],
+                      ["Global Rank", `#${stats.rank || "—"}`],
+                      ["XP", stats.xp],
+                    ].map(([label, value]) => (
+                      <div key={label} className="flex justify-between items-center">
+                        <span className="font-body text-xs text-gray-500 uppercase tracking-widest">{label}</span>
+                        <span className="font-heading font-700 text-sm text-sf-black">{value}</span>
+                      </div>
+                    ))}
+                    <div className="border-t border-sf-gray-border pt-2 mt-2">
+                      <span className="font-body text-xs text-gray-400">
+                        Member since {formatDate(stats.created_at)}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {avatarError && (
-                <p className="text-red-400 text-xs mt-3 flex items-center gap-1 font-medium">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  {avatarError}
-                </p>
-              )}
-
-              {pendingAvatarFile && (
-                <div className="mt-4 flex items-center gap-3">
-                  <button
-                    onClick={handleSaveAvatar}
-                    disabled={avatarSaving}
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-semibold py-2.5 px-4 rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {avatarSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    Save Picture
-                  </button>
-                  <button
-                    onClick={() => {
-                      setPendingAvatarFile(null);
-                      setAvatarPreview(null);
-                      setAvatarError(null);
-                    }}
-                    disabled={avatarSaving}
-                    className="text-sm font-semibold text-slate-400 hover:text-white transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
             </div>
 
-            {/* Card 2 — Profile Info */}
-            <div className="bg-slate-900/80 border border-slate-800/80 rounded-3xl p-6 shadow-2xl backdrop-blur-xl">
-              <h2 className="text-lg font-extrabold text-white mb-4">Profile Info</h2>
+            {/* RIGHT: Edit cards */}
+            <div className="md:col-span-2 space-y-4">
+              {/* Card 1 — Profile Picture */}
+              <div className="sf-card p-6">
+                <h2 className="font-heading font-700 text-sm uppercase tracking-widest text-gray-500 border-b border-sf-gray-border pb-3 mb-4 flex items-center gap-2">
+                  <Camera className="w-4 h-4 text-sf-orange" />
+                  Profile Picture
+                </h2>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      setInfoDirty(true);
-                      setInfoMessage(null);
-                    }}
-                    className="w-full bg-slate-950/60 border border-slate-800 focus:border-indigo-500 rounded-xl py-2.5 px-4 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
+                <div className="flex flex-col sm:flex-row items-center gap-5">
+                  <UserAvatar
+                    username={currentUser.username}
+                    profile_picture_url={avatarPreview || currentUser.profile_picture_url}
+                    size="xl"
                   />
-                </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
-                      Description
-                    </label>
-                    <span className="text-xs text-slate-500 font-mono">{description.length}/200</span>
-                  </div>
-                  <textarea
-                    value={description}
-                    maxLength={200}
-                    rows={3}
-                    onChange={(e) => {
-                      setDescription(e.target.value);
-                      setInfoDirty(true);
-                      setInfoMessage(null);
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragActive(true);
                     }}
-                    placeholder="Tell other fighters about yourself..."
-                    className="w-full bg-slate-950/60 border border-slate-800 focus:border-indigo-500 rounded-xl py-2.5 px-4 text-white placeholder-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 resize-none"
-                  />
-                </div>
-
-                {infoMessage && (
-                  <p
-                    className={`text-xs flex items-center gap-1.5 font-medium ${
-                      infoMessage.type === "success" ? "text-emerald-400" : "text-red-400"
+                    onDragLeave={() => setDragActive(false)}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`flex-1 w-full border-2 border-dashed p-5 text-center cursor-pointer transition-colors ${
+                      dragActive ? "border-sf-orange bg-sf-orange/5" : "border-sf-gray-border hover:border-sf-orange"
                     }`}
                   >
-                    {infoMessage.type === "success" ? (
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                    ) : (
-                      <AlertCircle className="w-3.5 h-3.5" />
-                    )}
-                    {infoMessage.text}
+                    <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                    <p className="font-body text-sm font-semibold text-gray-600">Click to upload or drag & drop</p>
+                    <p className="font-body text-xs text-gray-400 mt-1">JPEG, PNG, or WEBP — max 2MB</p>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => handleFileSelected(e.target.files?.[0])}
+                    />
+                  </div>
+                </div>
+
+                {avatarError && (
+                  <p className="font-body text-xs text-sf-red mt-3 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {avatarError}
                   </p>
                 )}
 
-                <button
-                  onClick={handleSaveInfo}
-                  disabled={infoSaving || !username.trim()}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-semibold py-2.5 px-4 rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {infoSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Save Changes
-                </button>
-              </div>
-            </div>
-
-            {/* Card 3 — Change Password */}
-            <div className="bg-slate-900/80 border border-slate-800/80 rounded-3xl p-6 shadow-2xl backdrop-blur-xl">
-              <h2 className="text-lg font-extrabold text-white mb-4 flex items-center gap-2">
-                <Lock className="w-4.5 h-4.5 text-indigo-400" />
-                Change Password
-              </h2>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                    Current Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPasswords ? "text" : "password"}
-                      value={currentPassword}
-                      onChange={(e) => {
-                        setCurrentPassword(e.target.value);
-                        setPasswordMessage(null);
-                      }}
-                      className="w-full bg-slate-950/60 border border-slate-800 focus:border-indigo-500 rounded-xl py-2.5 px-4 pr-10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                    />
+                {pendingAvatarFile && (
+                  <div className="mt-4 flex items-center gap-4">
                     <button
-                      type="button"
-                      onClick={() => setShowPasswords((v) => !v)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300"
-                      tabIndex={-1}
+                      onClick={handleSaveAvatar}
+                      disabled={avatarSaving}
+                      className="sf-btn-primary inline-flex items-center gap-2"
                     >
-                      {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {avatarSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      Save Picture
+                    </button>
+                    <button
+                      onClick={() => {
+                        setPendingAvatarFile(null);
+                        setAvatarPreview(null);
+                        setAvatarError(null);
+                      }}
+                      disabled={avatarSaving}
+                      className="font-body text-sm font-semibold text-gray-500 hover:text-sf-black transition-colors"
+                    >
+                      Cancel
                     </button>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                    New Password
-                  </label>
-                  <input
-                    type={showPasswords ? "text" : "password"}
-                    value={newPassword}
-                    onChange={(e) => {
-                      setNewPassword(e.target.value);
-                      setPasswordMessage(null);
-                    }}
-                    className="w-full bg-slate-950/60 border border-slate-800 focus:border-indigo-500 rounded-xl py-2.5 px-4 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                  />
-                  {newPassword && (
-                    <div className="mt-2">
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${strength.color} transition-all duration-300`}
-                          style={{ width: `${(strength.score / 5) * 100}%` }}
-                        />
-                      </div>
-                      <p className="text-[11px] text-slate-500 mt-1">{strength.label}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                    Confirm New Password
-                  </label>
-                  <input
-                    type={showPasswords ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => {
-                      setConfirmPassword(e.target.value);
-                      setPasswordMessage(null);
-                    }}
-                    className="w-full bg-slate-950/60 border border-slate-800 focus:border-indigo-500 rounded-xl py-2.5 px-4 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                  />
-                </div>
-
-                {passwordMessage && (
-                  <p
-                    className={`text-xs flex items-center gap-1.5 font-medium ${
-                      passwordMessage.type === "success" ? "text-emerald-400" : "text-red-400"
-                    }`}
-                  >
-                    {passwordMessage.type === "success" ? (
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                    ) : (
-                      <AlertCircle className="w-3.5 h-3.5" />
-                    )}
-                    {passwordMessage.text}
-                  </p>
                 )}
+              </div>
 
-                <button
-                  onClick={handleChangePassword}
-                  disabled={passwordSaving || !currentPassword || !newPassword || !confirmPassword}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-semibold py-2.5 px-4 rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {passwordSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+              {/* Card 2 — Profile Info */}
+              <div className="sf-card p-6">
+                <h2 className="font-heading font-700 text-sm uppercase tracking-widest text-gray-500 border-b border-sf-gray-border pb-3 mb-4">
+                  Profile Info
+                </h2>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block font-heading font-700 text-xs uppercase tracking-widest text-gray-500 mb-1.5">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        setInfoDirty(true);
+                        setInfoMessage(null);
+                      }}
+                      className="sf-input"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="font-heading font-700 text-xs uppercase tracking-widest text-gray-500">
+                        Description
+                      </label>
+                      <span className="font-body text-xs text-gray-400">{description.length}/200</span>
+                    </div>
+                    <textarea
+                      value={description}
+                      maxLength={200}
+                      rows={3}
+                      onChange={(e) => {
+                        setDescription(e.target.value);
+                        setInfoDirty(true);
+                        setInfoMessage(null);
+                      }}
+                      placeholder="Tell other fighters about yourself..."
+                      className="sf-input resize-none"
+                    />
+                  </div>
+
+                  {infoMessage && (
+                    <p
+                      className={`font-body text-xs flex items-center gap-1.5 ${
+                        infoMessage.type === "success" ? "text-emerald-600" : "text-sf-red"
+                      }`}
+                    >
+                      {infoMessage.type === "success" ? (
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      ) : (
+                        <AlertCircle className="w-3.5 h-3.5" />
+                      )}
+                      {infoMessage.text}
+                    </p>
+                  )}
+
+                  <button
+                    onClick={handleSaveInfo}
+                    disabled={infoSaving || !username.trim()}
+                    className="sf-btn-primary inline-flex items-center gap-2"
+                  >
+                    {infoSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+
+              {/* Card 3 — Change Password */}
+              <div className="sf-card p-6">
+                <h2 className="font-heading font-700 text-sm uppercase tracking-widest text-gray-500 border-b border-sf-gray-border pb-3 mb-4 flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-sf-orange" />
                   Change Password
-                </button>
+                </h2>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block font-heading font-700 text-xs uppercase tracking-widest text-gray-500 mb-1.5">
+                      Current Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPasswords ? "text" : "password"}
+                        value={currentPassword}
+                        onChange={(e) => {
+                          setCurrentPassword(e.target.value);
+                          setPasswordMessage(null);
+                        }}
+                        className="sf-input pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPasswords((v) => !v)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-sf-black"
+                        tabIndex={-1}
+                      >
+                        {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-heading font-700 text-xs uppercase tracking-widest text-gray-500 mb-1.5">
+                      New Password
+                    </label>
+                    <input
+                      type={showPasswords ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => {
+                        setNewPassword(e.target.value);
+                        setPasswordMessage(null);
+                      }}
+                      className="sf-input"
+                    />
+                    {newPassword && (
+                      <div className="mt-2">
+                        <div className="w-full h-1.5 bg-gray-200 overflow-hidden">
+                          <div
+                            className={`h-full ${strength.color} transition-all duration-300`}
+                            style={{ width: `${(strength.score / 5) * 100}%` }}
+                          />
+                        </div>
+                        <p className="font-body text-[11px] text-gray-500 mt-1">{strength.label}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block font-heading font-700 text-xs uppercase tracking-widest text-gray-500 mb-1.5">
+                      Confirm New Password
+                    </label>
+                    <input
+                      type={showPasswords ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setPasswordMessage(null);
+                      }}
+                      className="sf-input"
+                    />
+                  </div>
+
+                  {passwordMessage && (
+                    <p
+                      className={`font-body text-xs flex items-center gap-1.5 ${
+                        passwordMessage.type === "success" ? "text-emerald-600" : "text-sf-red"
+                      }`}
+                    >
+                      {passwordMessage.type === "success" ? (
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      ) : (
+                        <AlertCircle className="w-3.5 h-3.5" />
+                      )}
+                      {passwordMessage.text}
+                    </p>
+                  )}
+
+                  <button
+                    onClick={handleChangePassword}
+                    disabled={passwordSaving || !currentPassword || !newPassword || !confirmPassword}
+                    className="sf-btn-primary inline-flex items-center gap-2"
+                  >
+                    {passwordSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+                    Change Password
+                  </button>
+                </div>
               </div>
             </div>
           </div>

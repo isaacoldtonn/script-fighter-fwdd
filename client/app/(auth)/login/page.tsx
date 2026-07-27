@@ -7,7 +7,8 @@ import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/axios";
-import { Shield, Mail, Lock, ArrowRight, Loader2, AlertCircle } from "lucide-react";
+import SpriteAnimator from "@/components/SpriteAnimator";
+import { AlertCircle } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email address"),
@@ -72,124 +73,116 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 flex flex-col justify-center items-center p-4 selection:bg-indigo-500 selection:text-white">
-      {/* Glow effects */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen sf-bg flex">
+      {/* LEFT decorative panel */}
+      <div className="hidden md:flex md:w-[40%] bg-sf-black relative flex-col justify-between p-10 lg:p-12 overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(255,255,255,0.02) 14px, rgba(255,255,255,0.02) 28px)",
+          }}
+        />
 
-      {/* Page Title */}
-      <div className="mb-8 text-center relative z-10 animate-fade-in">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-semibold mb-3 backdrop-blur-md">
-          <Shield className="w-4 h-4 text-indigo-400" />
-          <span>Python Control Flow Arena</span>
+        <div className="relative z-10">
+          <h1 className="font-heading font-900 text-4xl lg:text-5xl uppercase tracking-wide text-white leading-[0.95]">
+            Script
+            <br />
+            Fighter
+          </h1>
+          <p className="font-heading font-700 text-sf-orange uppercase tracking-[0.2em] text-sm mt-3">
+            Arcade Edition
+          </p>
         </div>
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-indigo-400">
-          Script Fighter
-        </h1>
-        <p className="text-slate-400 text-sm mt-1 font-medium">Arcade Edition</p>
+
+        <div className="relative z-10 flex justify-center">
+          <SpriteAnimator
+            src="/sprites/ryu-idle.png"
+            frameCount={6}
+            frameWidth={77}
+            frameHeight={93}
+            fps={6}
+            loop={true}
+            playing={true}
+            scale={3.0}
+          />
+        </div>
+
+        <div className="relative z-10">
+          <span className="sf-badge sf-badge-orange">Python Control Flow Arena</span>
+        </div>
       </div>
 
-      {/* Centered Card */}
-      <div className="w-full max-w-md bg-slate-900/80 border border-slate-800/80 rounded-2xl p-8 shadow-2xl backdrop-blur-xl relative z-10 transition-all duration-300 hover:border-slate-700/80">
-        <div className="mb-6 text-center">
-          <h2 className="text-2xl font-bold text-white tracking-wide">Welcome back</h2>
-          <p className="text-slate-400 text-sm mt-1">Log in to continue your coding battles</p>
-        </div>
+      {/* RIGHT form panel */}
+      <div className="flex-1 flex items-center justify-center p-6 md:p-12 lg:p-16 bg-white">
+        <div className="w-full max-w-md">
+          <h2 className="font-heading font-900 text-4xl uppercase tracking-[0.08em] text-sf-black">
+            Welcome Back
+          </h2>
+          <div className="w-16 h-[3px] bg-sf-orange mt-3 mb-8" />
 
-        {/* Server Error Alert */}
-        {serverError && (
-          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3 text-red-400 animate-shake">
-            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-400" />
-            <span className="text-sm font-medium">{serverError}</span>
-          </div>
-        )}
+          {serverError && (
+            <div className="mb-6 bg-red-50 border-l-4 border-sf-red px-3.5 py-2.5 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-sf-red" />
+              <p className="font-body text-sm text-sf-red">{serverError}</p>
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Email */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-              Email
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                <Mail className="w-4 h-4" />
-              </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Email */}
+            <div>
+              <label className="block font-heading font-700 uppercase tracking-[0.1em] text-xs text-gray-500 mb-1.5">
+                Email
+              </label>
               <input
                 type="email"
                 {...register("email")}
                 placeholder="warrior@scriptfighter.com"
-                className={`w-full bg-slate-950/60 border ${
-                  errors.email ? "border-red-500/60 focus:ring-red-500/20" : "border-slate-800 focus:border-indigo-500 focus:ring-indigo-500/20"
-                } rounded-xl py-2.5 pl-10 pr-4 text-white placeholder-slate-600 text-sm focus:outline-none focus:ring-2 transition-all duration-200`}
+                className="sf-input"
+                style={errors.email ? { borderColor: "#C0392B" } : undefined}
               />
+              {errors.email && (
+                <p className="font-body text-xs text-sf-red mt-1.5 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {errors.email.message}
+                </p>
+              )}
             </div>
-            {errors.email && (
-              <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1 font-medium">
-                <AlertCircle className="w-3.5 h-3.5" />
-                {errors.email.message}
-              </p>
-            )}
-          </div>
 
-          {/* Password */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-              Password
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                <Lock className="w-4 h-4" />
-              </div>
+            {/* Password */}
+            <div>
+              <label className="block font-heading font-700 uppercase tracking-[0.1em] text-xs text-gray-500 mb-1.5">
+                Password
+              </label>
               <input
                 type="password"
                 {...register("password")}
                 placeholder="••••••••"
-                className={`w-full bg-slate-950/60 border ${
-                  errors.password ? "border-red-500/60 focus:ring-red-500/20" : "border-slate-800 focus:border-indigo-500 focus:ring-indigo-500/20"
-                } rounded-xl py-2.5 pl-10 pr-4 text-white placeholder-slate-600 text-sm focus:outline-none focus:ring-2 transition-all duration-200`}
+                className="sf-input"
+                style={errors.password ? { borderColor: "#C0392B" } : undefined}
               />
-            </div>
-            {errors.password && (
-              <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1 font-medium">
-                <AlertCircle className="w-3.5 h-3.5" />
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-
-          {/* Submit Button */}
-          <div className="pt-2">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 active:translate-y-0"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Logging in...</span>
-                </>
-              ) : (
-                <>
-                  <span>Log in</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
+              {errors.password && (
+                <p className="font-body text-xs text-sf-red mt-1.5 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {errors.password.message}
+                </p>
               )}
-            </button>
-          </div>
-        </form>
+            </div>
 
-        {/* Footer Link */}
-        <div className="mt-6 text-center border-t border-slate-800/80 pt-5">
-          <p className="text-slate-400 text-sm">
-            New here?{" "}
-            <Link
-              href="/register"
-              className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors duration-150 underline decoration-indigo-500/30 hover:decoration-indigo-400"
-            >
-              Register
-            </Link>
-          </p>
+            {/* Submit Button */}
+            <div className="pt-2">
+              <button type="submit" disabled={isSubmitting} className="sf-btn-primary w-full">
+                {isSubmitting ? "Logging in..." : "Log In"}
+              </button>
+            </div>
+          </form>
+
+          {/* Footer Link */}
+          <div className="mt-8 pt-6 border-t border-sf-gray-border text-center">
+            <p className="font-body text-sm text-gray-600">
+              New here? <Link href="/register" className="sf-link">Register</Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

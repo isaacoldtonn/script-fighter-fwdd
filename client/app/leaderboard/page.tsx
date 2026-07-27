@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
+import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import NavBar from "@/components/NavBar";
 import UserAvatar from "@/components/UserAvatar";
 import UserProfileModal from "@/components/UserProfileModal";
-import { Shield, Trophy, Loader2, ArrowLeft, Crown, User } from "lucide-react";
+import { Trophy, Loader2, AlertCircle, RotateCw } from "lucide-react";
 
 interface CurrentUser {
   user_id: string;
@@ -32,168 +31,173 @@ interface LeaderboardResponse {
   current_user_id: string;
 }
 
+const RANK_MEDALS = ["🥇", "🥈", "🥉"];
+
 export default function LeaderboardPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [data, setData] = useState<LeaderboardResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchAll = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [meRes, lbRes] = await Promise.all([
-          api.get("/api/auth/me"),
-          api.get("/api/leaderboard"),
-        ]);
-        if (isMounted) {
-          setCurrentUser(meRes.data);
-          setData(lbRes.data);
-        }
-      } catch (err: any) {
-        if (err.response?.status === 401) {
-          router.push("/login");
-          return;
-        }
-        if (isMounted) {
-          setError("Failed to load leaderboard. Please try again.");
-        }
-      } finally {
-        if (isMounted) setLoading(false);
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [meRes, lbRes] = await Promise.all([
+        api.get("/api/auth/me"),
+        api.get("/api/leaderboard"),
+      ]);
+      setCurrentUser(meRes.data);
+      setData(lbRes.data);
+      setLastUpdated(new Date());
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        router.push("/login");
+        return;
       }
-    };
-
-    fetchAll();
-    return () => {
-      isMounted = false;
-    };
+      setError("Failed to load leaderboard. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }, [router]);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
   const openProfile = (userId: string) => {
     setSelectedUserId(userId);
     setShowProfileModal(true);
   };
 
-  const rankStyle = (rank: number) => {
-    if (rank === 1) return "bg-amber-500/10 border-amber-500/40 text-amber-400";
-    if (rank === 2) return "bg-slate-400/10 border-slate-400/40 text-slate-300";
-    if (rank === 3) return "bg-orange-600/10 border-orange-600/40 text-orange-400";
-    return "bg-slate-800/60 border-slate-700/60 text-slate-400";
-  };
-
   return (
     <>
       <NavBar currentUser={currentUser} />
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white p-4 sm:p-6 pt-24 selection:bg-indigo-500 selection:text-white">
-        <div className="max-w-2xl mx-auto">
+      <div className="sf-bg min-h-screen relative overflow-hidden pt-14 md:pt-16">
+        <div className="sf-watermark" style={{ top: "5%", right: "-5%" }}>
+          RANKING
+        </div>
+
+        <div className="relative z-10 max-w-5xl mx-auto px-6 py-12">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <Link
-              href="/lobby"
-              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-white text-sm font-semibold transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Lobby
-            </Link>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold uppercase tracking-wider">
-              <Shield className="w-4 h-4" />
-              Script Fighter
-            </div>
-          </div>
-
-          <div className="mb-6 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
-              <Trophy className="w-5 h-5" />
-            </div>
+          <div className="flex items-end justify-between mb-8 flex-wrap gap-4">
             <div>
-              <h1 className="text-2xl font-extrabold tracking-tight text-white">Leaderboard</h1>
-              <p className="text-slate-400 text-sm">Top 50 fighters by XP</p>
+              <span className="sf-badge sf-badge-orange mb-3 block w-fit">Global Rankings</span>
+              <h1 className="sf-section-title">Leaderboard</h1>
             </div>
+            <button onClick={fetchAll} disabled={loading} className="sf-btn-ghost text-sm inline-flex items-center gap-2">
+              <RotateCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </button>
           </div>
 
-          {/* Content */}
-          {loading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between gap-4 p-3.5 rounded-2xl border border-slate-800/80 bg-slate-900/80 animate-pulse"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-lg bg-slate-800 shrink-0" />
-                    <div className="w-9 h-9 rounded-full bg-slate-800 shrink-0" />
-                    <div className="space-y-1.5">
-                      <div className="h-3.5 w-24 bg-slate-800 rounded" />
-                      <div className="h-2.5 w-32 bg-slate-800/70 rounded" />
-                    </div>
-                  </div>
-                  <div className="h-4 w-14 bg-slate-800 rounded" />
-                </div>
-              ))}
+          {loading && !data ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-sf-orange mb-3" />
+              <p className="font-body text-sm text-gray-500">Loading leaderboard...</p>
             </div>
           ) : error ? (
-            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium">
-              {error}
+            <div className="bg-red-50 border-l-4 border-sf-red px-4 py-3 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-sf-red shrink-0" />
+              <p className="font-body text-sm text-sf-red">{error}</p>
             </div>
           ) : !data || data.leaderboard.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400">
-              <Trophy className="w-10 h-10 mb-3 text-slate-600" />
-              <p className="font-semibold">No ranked fighters yet</p>
-              <p className="text-sm text-slate-500 mt-1">Play a match to appear on the board.</p>
+            <div className="sf-card flex flex-col items-center justify-center py-20 text-center">
+              <Trophy className="w-10 h-10 mb-3 text-gray-300" />
+              <p className="font-heading font-700 text-sf-black">No ranked fighters yet</p>
+              <p className="font-body text-sm text-gray-500 mt-1">Play a match to appear on the board.</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {data.leaderboard.map((row) => {
-                const isMe = row.user_id === data.current_user_id;
+            <>
+              {/* Column headers */}
+              <div className="hidden sm:grid grid-cols-12 gap-4 px-4 mb-2 border-b-2 border-sf-black pb-2">
+                <div className="col-span-1 font-heading font-700 text-xs uppercase tracking-widest text-gray-500">
+                  Rank
+                </div>
+                <div className="col-span-4 font-heading font-700 text-xs uppercase tracking-widest text-gray-500">
+                  Player
+                </div>
+                <div className="col-span-2 font-heading font-700 text-xs uppercase tracking-widest text-gray-500 text-right">
+                  XP
+                </div>
+                <div className="col-span-2 font-heading font-700 text-xs uppercase tracking-widest text-gray-500 text-right">
+                  Wins
+                </div>
+                <div className="col-span-3 font-heading font-700 text-xs uppercase tracking-widest text-gray-500 text-right">
+                  Win Rate
+                </div>
+              </div>
+
+              {/* Leaderboard rows */}
+              {data.leaderboard.map((player, i) => {
+                const isCurrentUser = player.user_id === data.current_user_id;
                 return (
-                  <button
-                    key={row.user_id}
-                    onClick={() => openProfile(row.user_id)}
-                    className={`w-full text-left flex items-center justify-between gap-4 p-3.5 rounded-2xl border shadow-lg cursor-pointer transition-colors ${
-                      isMe
-                        ? "bg-indigo-500/10 border-indigo-500/50 hover:bg-indigo-500/15"
-                        : "bg-slate-900/80 border-slate-800/80 hover:bg-slate-900"
+                  <div
+                    key={player.user_id}
+                    onClick={() => openProfile(player.user_id)}
+                    className={`grid grid-cols-12 gap-4 px-4 py-3 border-b border-sf-gray-border cursor-pointer transition-all hover:bg-sf-orange/5 hover:border-l-4 hover:border-l-sf-orange hover:pl-3 animate-fade-in-up ${
+                      isCurrentUser ? "bg-sf-orange/10 border-l-4 border-l-sf-orange" : "bg-white"
                     }`}
+                    style={{ animationDelay: `${i * 0.03}s` }}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className={`w-9 h-9 rounded-lg border flex items-center justify-center font-mono font-black text-sm shrink-0 ${rankStyle(
-                          row.rank
-                        )}`}
-                      >
-                        {row.rank <= 3 ? <Crown className="w-4 h-4" /> : row.rank}
-                      </div>
-                      <UserAvatar size="sm" username={row.username} profile_picture_url={row.profile_picture_url} />
+                    {/* Rank */}
+                    <div className="col-span-2 sm:col-span-1 flex items-center">
+                      {i < 3 ? (
+                        <span className="text-xl">{RANK_MEDALS[i]}</span>
+                      ) : (
+                        <span className="font-heading font-700 text-sm text-gray-500">{player.rank}</span>
+                      )}
+                    </div>
+
+                    {/* Player */}
+                    <div className="col-span-10 sm:col-span-4 flex items-center gap-2 min-w-0">
+                      <UserAvatar username={player.username} profile_picture_url={player.profile_picture_url} size="sm" />
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-white truncate flex items-center gap-1.5">
-                          {row.username}
-                          {isMe && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-extrabold uppercase tracking-wider">
-                              <User className="w-2.5 h-2.5" />
-                              You
-                            </span>
-                          )}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {row.wins}W / {row.total_matches} played · {row.win_rate}% win rate
-                        </p>
+                        <div className="font-heading font-700 text-sm tracking-wide text-sf-black truncate">
+                          {player.username}
+                        </div>
+                        {isCurrentUser && (
+                          <span className="font-body text-xs text-sf-orange font-600">You</span>
+                        )}
                       </div>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-mono font-extrabold text-indigo-300">{row.xp} XP</p>
+                    {/* XP */}
+                    <div className="hidden sm:flex col-span-2 items-center justify-end">
+                      <span className="font-heading font-700 text-sm text-sf-orange">{player.xp.toLocaleString()}</span>
                     </div>
-                  </button>
+
+                    {/* Wins */}
+                    <div className="hidden sm:flex col-span-2 items-center justify-end">
+                      <span className="font-heading font-700 text-sm text-sf-black">{player.wins}</span>
+                    </div>
+
+                    {/* Win rate bar */}
+                    <div className="hidden sm:flex col-span-3 items-center gap-2 justify-end">
+                      <div className="flex-1 sf-hp-bar" style={{ maxWidth: "80px" }}>
+                        <div className="sf-hp-fill" style={{ width: `${player.win_rate}%` }} />
+                      </div>
+                      <span className="font-heading font-700 text-xs text-sf-black w-10 text-right flex-shrink-0">
+                        {player.win_rate}%
+                      </span>
+                    </div>
+                  </div>
                 );
               })}
-            </div>
+
+              {lastUpdated && (
+                <div className="text-center mt-6">
+                  <span className="font-body text-xs text-gray-400">
+                    Last updated: {lastUpdated.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

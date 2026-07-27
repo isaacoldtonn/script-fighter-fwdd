@@ -1,23 +1,11 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import NavBar from "@/components/NavBar";
 import UserAvatar from "@/components/UserAvatar";
-import {
-  Shield,
-  Swords,
-  Trophy,
-  XCircle,
-  MinusCircle,
-  Loader2,
-  ChevronLeft,
-  ChevronRight,
-  ArrowLeft,
-  History as HistoryIcon,
-} from "lucide-react";
+import { Swords, Loader2, AlertCircle } from "lucide-react";
 
 interface CurrentUser {
   user_id: string;
@@ -98,159 +86,143 @@ export default function HistoryPage() {
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }) + " " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-  };
-
-  const resultBadge = (result: MatchRecord["result"]) => {
-    if (result === "win") {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-extrabold uppercase tracking-wider">
-          <Trophy className="w-3.5 h-3.5" />
-          Win
-        </span>
-      );
-    }
-    if (result === "loss") {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-extrabold uppercase tracking-wider">
-          <XCircle className="w-3.5 h-3.5" />
-          Loss
-        </span>
-      );
-    }
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-400 text-xs font-extrabold uppercase tracking-wider">
-        <MinusCircle className="w-3.5 h-3.5" />
-        Draw
-      </span>
+      d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) +
+      " " +
+      d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
     );
   };
 
+  const resultLabel = (result: MatchRecord["result"]) => {
+    if (result === "win") {
+      return <span className="font-heading font-800 text-sm px-3 py-2 flex-shrink-0 uppercase tracking-widest sf-gradient text-white">Win</span>;
+    }
+    if (result === "loss") {
+      return <span className="font-heading font-800 text-sm px-3 py-2 flex-shrink-0 uppercase tracking-widest bg-gray-200 text-gray-600">Loss</span>;
+    }
+    return <span className="font-heading font-800 text-sm px-3 py-2 flex-shrink-0 uppercase tracking-widest bg-gray-300 text-gray-700">Draw</span>;
+  };
+
+  const totalPages = data?.total_pages ?? 0;
+
   return (
     <>
-    <NavBar currentUser={currentUser} />
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white p-4 sm:p-6 pt-24 selection:bg-indigo-500 selection:text-white">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Link
-            href="/lobby"
-            className="inline-flex items-center gap-1.5 text-slate-400 hover:text-white text-sm font-semibold transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Lobby
-          </Link>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold uppercase tracking-wider">
-            <Shield className="w-4 h-4" />
-            Script Fighter
-          </div>
+      <NavBar currentUser={currentUser} />
+      <div className="sf-bg min-h-screen relative overflow-hidden pt-14 md:pt-16">
+        <div className="sf-watermark" style={{ top: "5%", right: "-5%" }}>
+          HISTORY
         </div>
 
-        <div className="mb-6 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400">
-            <HistoryIcon className="w-5 h-5" />
+        <div className="relative z-10 max-w-5xl mx-auto px-6 py-12">
+          {/* Header */}
+          <div className="mb-8">
+            <span className="sf-badge sf-badge-orange mb-3 block w-fit">Battle Record</span>
+            <h1 className="sf-section-title">Match History</h1>
+            {data && (
+              <p className="font-body text-gray-500 text-sm mt-4">
+                {data.total} total {data.total === 1 ? "match" : "matches"} recorded
+              </p>
+            )}
           </div>
-          <div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-white">Match History</h1>
-            <p className="text-slate-400 text-sm">Your past battles and results</p>
-          </div>
-        </div>
 
-        {/* Content */}
-        {loading && !data ? (
-          <div className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between gap-4 animate-pulse"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-full bg-slate-800 shrink-0" />
-                  <div className="space-y-1.5">
-                    <div className="h-3.5 w-28 bg-slate-800 rounded" />
-                    <div className="h-2.5 w-20 bg-slate-800/70 rounded" />
-                  </div>
-                </div>
-                <div className="h-6 w-16 bg-slate-800 rounded-full" />
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium">
-            {error}
-          </div>
-        ) : !data || data.matches.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400">
-            <Swords className="w-10 h-10 mb-3 text-slate-600" />
-            <p className="font-semibold">No matches played yet</p>
-            <p className="text-sm text-slate-500 mt-1">Head to the lobby to start a fight.</p>
-          </div>
-        ) : (
-          <>
+          {/* Content */}
+          {loading && !data ? (
             <div className="space-y-3">
-              {data.matches.map((m) => (
-                <div
-                  key={m.match_id}
-                  className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-lg"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <UserAvatar
-                      size="sm"
-                      username={m.opponent_username}
-                      profile_picture_url={m.opponent_profile_picture_url}
-                    />
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-white truncate">
-                        vs {m.opponent_username}
-                      </p>
-                      <p className="text-xs text-slate-500">{formatDate(m.played_at)}</p>
-                    </div>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="sf-card p-4 flex items-center gap-4 animate-pulse">
+                  <div className="w-9 h-9 rounded-full bg-gray-200 shrink-0" />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-3.5 w-28 bg-gray-200 rounded" />
+                    <div className="h-2.5 w-20 bg-gray-200 rounded" />
                   </div>
-
-                  <div className="flex items-center gap-4 shrink-0">
-                    <div className="text-right text-xs font-mono text-slate-400 hidden sm:block">
-                      <span className="text-emerald-400 font-bold">{Math.max(0, m.my_final_hp)}</span>
-                      {" "}vs{" "}
-                      <span className="text-rose-400 font-bold">{Math.max(0, m.opponent_final_hp)}</span>
-                    </div>
-                    {resultBadge(m.result)}
-                  </div>
+                  <div className="h-8 w-16 bg-gray-200" />
                 </div>
               ))}
             </div>
+          ) : error ? (
+            <div className="bg-red-50 border-l-4 border-sf-red px-4 py-3 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-sf-red shrink-0" />
+              <p className="font-body text-sm text-sf-red">{error}</p>
+            </div>
+          ) : !data || data.matches.length === 0 ? (
+            <div className="sf-card flex flex-col items-center justify-center py-20 text-center">
+              <Swords className="w-10 h-10 mb-3 text-gray-300" />
+              <p className="font-heading font-700 text-sf-black">No matches played yet</p>
+              <p className="font-body text-sm text-gray-500 mt-1">Head to the lobby to start a fight.</p>
+            </div>
+          ) : (
+            <>
+              {/* Match list */}
+              <div className="space-y-3">
+                {data.matches.map((match, i) => (
+                  <div
+                    key={match.match_id}
+                    className="sf-card p-4 flex items-center gap-4 hover:border-sf-orange transition-colors animate-fade-in-up"
+                    style={{ animationDelay: `${i * 0.05}s` }}
+                  >
+                    {resultLabel(match.result)}
 
-            {/* Pagination */}
-            {data.total_pages > 1 && (
-              <div className="flex items-center justify-between mt-6">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page <= 1 || loading}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-sm font-semibold text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:border-slate-700 transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Prev
-                </button>
-                <span className="text-xs font-mono text-slate-500">
-                  Page {data.page} of {data.total_pages}
-                </span>
-                <button
-                  onClick={() => setPage((p) => Math.min(data.total_pages, p + 1))}
-                  disabled={page >= data.total_pages || loading}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-sm font-semibold text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:border-slate-700 transition-colors"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                    {/* Opponent info */}
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <UserAvatar
+                        username={match.opponent_username}
+                        profile_picture_url={match.opponent_profile_picture_url}
+                        size="sm"
+                      />
+                      <div className="min-w-0">
+                        <div className="font-heading font-700 text-sm tracking-wide text-sf-black truncate">
+                          vs {match.opponent_username}
+                        </div>
+                        <div className="font-body text-xs text-gray-400">{formatDate(match.played_at)}</div>
+                      </div>
+                    </div>
+
+                    {/* Final HP */}
+                    <div className="hidden sm:flex items-center gap-6 text-right shrink-0">
+                      <div>
+                        <div className="font-heading font-700 text-sm text-sf-black">
+                          {Math.max(0, match.my_final_hp)} - {Math.max(0, match.opponent_final_hp)}
+                        </div>
+                        <div className="font-body text-xs text-gray-400">Final HP</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </>
-        )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center gap-1 mt-8">
+                  <button
+                    className="sf-page-btn"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1 || loading}
+                  >
+                    ‹
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      className={`sf-page-btn ${page === p ? "active" : ""}`}
+                      onClick={() => setPage(p)}
+                      disabled={loading}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    className="sf-page-btn"
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages || loading}
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
     </>
   );
 }

@@ -170,7 +170,7 @@ export default function MatchResultPage() {
             color: "transparent",
             WebkitTextStroke: "2px #E040FB",
             textShadow: "0 0 20px #E040FB, 0 0 40px #9C27B0",
-            fontFamily: "Impact, Arial Black, sans-serif",
+            fontFamily: "var(--font-heading), Impact, Arial Black, sans-serif",
           }}
         >
           RESULT
@@ -207,10 +207,10 @@ export default function MatchResultPage() {
             key={item.action}
             onClick={() => handleMenuAction(item.action)}
             onMouseEnter={() => setSelectedMenu(index)}
-            className={`text-left px-6 py-3 text-white font-bold uppercase tracking-widest transition-all duration-150 ${
+            className={`text-left px-6 py-3 font-heading font-700 uppercase tracking-widest transition-all duration-150 border-l-4 ${
               selectedMenu === index
-                ? "bg-pink-600/80 border-l-4 border-pink-300 text-pink-100 pl-8"
-                : "bg-transparent border-l-4 border-transparent hover:bg-white/10"
+                ? "sf-gradient text-white border-transparent pl-8"
+                : "bg-transparent text-white border-transparent hover:border-sf-orange hover:bg-sf-orange/10"
             }`}
           >
             {item.label}

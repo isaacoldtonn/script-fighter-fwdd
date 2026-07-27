@@ -7,6 +7,35 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      colors: {
+        sf: {
+          orange: "#E8520A",
+          "orange-lite": "#F5A623",
+          black: "#1A1A1A",
+          "gray-bg": "#EBEBEB",
+          "gray-card": "#F7F7F7",
+          "gray-border": "#CCCCCC",
+          "gray-stripe": "#D8D8D8",
+          white: "#FFFFFF",
+          red: "#C0392B",
+          teal: "#0A8A8A",
+        },
+      },
+      fontFamily: {
+        heading: ["var(--font-heading)", "Impact", "Arial Black", "sans-serif"],
+        body: ["var(--font-body)", "Arial", "sans-serif"],
+      },
+      // Numeric keys alongside Tailwind's named scale (font-bold, etc.) so
+      // font-400/600/700/800/900 work directly — matches the weight numbers
+      // the loaded Google Fonts actually ship (Barlow Condensed 400-900).
+      fontWeight: {
+        400: "400",
+        500: "500",
+        600: "600",
+        700: "700",
+        800: "800",
+        900: "900",
+      },
       keyframes: {
         "screen-shake": {
           "0%, 100%": { transform: "translate(0, 0)" },
@@ -36,12 +65,22 @@ const config: Config = {
           "0%, 100%": { boxShadow: "0 0 4px #FF2020" },
           "50%": { boxShadow: "0 0 16px #FF2020, 0 0 32px #FF0000" },
         },
+        "sf-hover-fill": {
+          "0%": { backgroundPosition: "100% 50%" },
+          "100%": { backgroundPosition: "0% 50%" },
+        },
+        "fade-in-up": {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "screen-shake": "screen-shake 0.5s ease-in-out",
         "hit-flash": "hit-flash 0.6s ease-in-out",
         "ko-appear": "ko-appear 0.6s ease-out forwards",
         "hp-pulse": "hp-pulse 0.8s ease-in-out infinite",
+        "sf-hover-fill": "sf-hover-fill 0.2s ease forwards",
+        "fade-in-up": "fade-in-up 0.3s ease forwards",
       },
     },
   },

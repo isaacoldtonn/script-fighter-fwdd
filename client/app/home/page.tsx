@@ -4,16 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import NavBar from "@/components/NavBar";
-import {
-  Shield,
-  Swords,
-  DoorOpen,
-  QrCode,
-  Loader2,
-  ArrowRight,
-  Trophy,
-  AlertCircle,
-} from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 
 interface CurrentUser {
   user_id: string;
@@ -110,105 +101,109 @@ export default function HomePage() {
 
   if (loading || !currentUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
+      <div className="min-h-screen sf-bg flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-sf-orange" />
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white selection:bg-indigo-500 selection:text-white">
-      <NavBar currentUser={currentUser} />
+  const statTiles = [
+    { label: "Total Matches", value: stats?.total_matches ?? 0 },
+    { label: "Total Wins", value: stats?.total_wins ?? 0 },
+    { label: "Win Rate", value: `${stats?.win_rate ?? 0}%` },
+    { label: "Global Rank", value: `#${stats?.rank || "—"}` },
+  ];
 
-      <main className="pt-28 pb-16 px-4 sm:px-6 max-w-5xl mx-auto">
-        {/* Hero */}
-        <div className="text-center mb-12 animate-fade-in">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-4">
-            <Shield className="w-4 h-4" />
-            Python Control Flow Arena
-          </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-indigo-400">
-            Script Fighter
-          </h1>
-          <p className="text-slate-400 text-base mt-2 font-medium">Arcade Edition</p>
+  return (
+    <>
+      <NavBar currentUser={currentUser} />
+      <main className="sf-bg min-h-screen relative overflow-hidden pt-14 md:pt-16">
+        {/* Watermark */}
+        <div className="sf-watermark" style={{ top: "10%", right: "-5%" }}>
+          FIGHT
         </div>
 
-        {/* Action cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          {/* Host card */}
-          <div className="bg-slate-900/80 border border-slate-800/80 rounded-3xl p-7 shadow-2xl backdrop-blur-xl flex flex-col">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4">
-              <Swords className="w-6 h-6" />
-            </div>
-            <h2 className="text-xl font-extrabold text-white mb-1.5">Host a Game</h2>
-            <p className="text-slate-400 text-sm mb-6 flex-1">
-              Create a new lobby and invite players via QR code
+        <section className="relative z-10 max-w-6xl mx-auto px-6 py-16">
+          {/* Page heading */}
+          <div className="mb-12">
+            <span className="sf-badge sf-badge-orange mb-3 block w-fit">
+              Python Control Flow Arena
+            </span>
+            <h1 className="sf-section-title mb-2">Ready to Fight?</h1>
+            <p className="font-body text-gray-600 text-lg mt-4">
+              Master Python Control Flow through real-time arcade battles
             </p>
-            <button
-              onClick={() => router.push("/lobby")}
-              className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition-all duration-200 transform hover:-translate-y-0.5"
-            >
-              Host Lobby
-              <ArrowRight className="w-4 h-4" />
-            </button>
           </div>
 
-          {/* Join card */}
-          <div className="bg-slate-900/80 border border-slate-800/80 rounded-3xl p-7 shadow-2xl backdrop-blur-xl flex flex-col">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-4">
-              <DoorOpen className="w-6 h-6" />
+          {/* Two action cards side by side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
+            {/* HOST card */}
+            <div className="sf-card p-8">
+              <div className="text-4xl mb-4">⚔️</div>
+              <h2 className="font-heading font-800 text-2xl uppercase tracking-wider text-sf-black mb-3">
+                Host a Game
+              </h2>
+              <div className="w-10 h-0.5 bg-sf-orange mb-4" />
+              <p className="font-body text-gray-600 text-sm mb-6 leading-relaxed">
+                Create a new lobby. Players join by scanning your QR code or entering the
+                session code.
+              </p>
+              <button onClick={() => router.push("/lobby")} className="sf-btn-primary w-full">
+                Host Lobby →
+              </button>
             </div>
-            <h2 className="text-xl font-extrabold text-white mb-1.5">Join a Game</h2>
-            <p className="text-slate-400 text-sm mb-4">
-              Enter the session code from the host&apos;s screen
-            </p>
 
-            <div className="mb-2">
-              <input
-                type="text"
-                value={code}
-                onChange={handleCodeChange}
-                onKeyDown={(e) => e.key === "Enter" && handleJoin()}
-                placeholder="Enter session code (e.g. ZT-6704)"
-                maxLength={7}
-                className={`w-full bg-slate-950/60 border ${
-                  codeError ? "border-red-500/60" : "border-slate-800 focus:border-purple-500"
-                } rounded-xl py-2.5 px-4 text-white placeholder-slate-600 text-sm font-mono tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all duration-200`}
-              />
+            {/* JOIN card */}
+            <div className="sf-card p-8">
+              <div className="text-4xl mb-4">🎮</div>
+              <h2 className="font-heading font-800 text-2xl uppercase tracking-wider text-sf-black mb-3">
+                Join a Game
+              </h2>
+              <div className="w-10 h-0.5 bg-sf-orange mb-4" />
+              <p className="font-body text-gray-600 text-sm mb-4 leading-relaxed">
+                Enter the session code shown on the host&apos;s screen.
+              </p>
+              <div className="flex gap-0">
+                <input
+                  type="text"
+                  value={code}
+                  onChange={handleCodeChange}
+                  placeholder="ZT-6704"
+                  maxLength={7}
+                  className="sf-input flex-1 font-heading font-700 text-lg tracking-widest"
+                  onKeyDown={(e) => e.key === "Enter" && handleJoin()}
+                />
+                <button onClick={handleJoin} disabled={joining} className="sf-btn-primary px-6" style={{ clipPath: "none" }}>
+                  {joining ? "..." : "JOIN"}
+                </button>
+              </div>
               {codeError && (
-                <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1 font-medium">
-                  <AlertCircle className="w-3.5 h-3.5" />
+                <p className="font-body text-sm text-sf-red mt-2 border-l-2 border-sf-red pl-2 flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                   {codeError}
                 </p>
               )}
+              <p className="font-body text-xs text-gray-400 mt-3">
+                Or scan the QR code on the host&apos;s screen
+              </p>
             </div>
-
-            <button
-              onClick={handleJoin}
-              disabled={joining}
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-            >
-              {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Join</span>}
-            </button>
-
-            <p className="text-xs text-slate-500 mt-4 flex items-center gap-1.5">
-              <QrCode className="w-3.5 h-3.5" />
-              Or scan the QR code on the host&apos;s screen
-            </p>
           </div>
-        </div>
 
-        {/* Quick stats */}
-        {stats && (
-          <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 backdrop-blur-md text-center">
-            <p className="text-sm text-slate-300 font-semibold flex items-center justify-center gap-2 flex-wrap">
-              <Trophy className="w-4 h-4 text-amber-400" />
-              Your Stats: {stats.total_wins} wins · {stats.total_matches} matches ·{" "}
-              {stats.win_rate}% win rate · Rank #{stats.rank || "—"}
-            </p>
+          {/* Quick stats bar */}
+          <div className="border-t-2 border-sf-gray-border pt-6">
+            <div className="flex flex-wrap gap-8">
+              {statTiles.map(({ label, value }) => (
+                <div key={label}>
+                  <div className="font-heading font-700 text-2xl text-sf-black">{value}</div>
+                  <div className="font-body text-xs text-gray-500 uppercase tracking-widest mt-0.5">
+                    {label}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        )}
+        </section>
       </main>
-    </div>
+    </>
   );
 }

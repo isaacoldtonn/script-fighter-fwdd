@@ -1,3 +1,222 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* SF diagonal stripe background — used on all main page backgrounds */
+.sf-bg {
+  background-color: #EBEBEB;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 14px,
+    rgba(0, 0, 0, 0.028) 14px,
+    rgba(0, 0, 0, 0.028) 28px
+  );
+}
+
+/* Orange gradient — used on buttons and hover states */
+.sf-gradient {
+  background: linear-gradient(135deg, #E8520A 0%, #F5A623 100%);
+}
+
+/* Ghost watermark text — positioned absolutely behind content */
+.sf-watermark {
+  position: absolute;
+  font-family: var(--font-heading), Impact, sans-serif;
+  font-weight: 900;
+  font-size: clamp(80px, 15vw, 200px);
+  color: rgba(0, 0, 0, 0.04);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Primary SF button */
+.sf-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 28px;
+  background: linear-gradient(135deg, #E8520A 0%, #F5A623 100%);
+  color: #FFFFFF;
+  font-family: var(--font-heading), Impact, sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 100%, 10px 100%);
+}
+.sf-btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.sf-btn-primary:active {
+  transform: translateY(0);
+}
+.sf-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Ghost/outline SF button */
+.sf-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 26px;
+  background: transparent;
+  color: #1A1A1A;
+  font-family: var(--font-heading), Impact, sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 2px solid #1A1A1A;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.sf-btn-ghost:hover {
+  background: linear-gradient(135deg, #E8520A 0%, #F5A623 100%);
+  color: #FFFFFF;
+  border-color: transparent;
+}
+
+/* SF card — white card with orange corner accent */
+.sf-card {
+  background: #FFFFFF;
+  border: 1px solid #CCCCCC;
+  border-radius: 0;
+  position: relative;
+}
+.sf-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 20px 20px 0 0;
+  border-color: #E8520A transparent transparent transparent;
+  z-index: 1;
+}
+
+/* SF input field */
+.sf-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: #FFFFFF;
+  border: 2px solid #CCCCCC;
+  border-radius: 0;
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: 14px;
+  color: #1A1A1A;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.sf-input:focus {
+  border-color: #E8520A;
+}
+.sf-input::placeholder {
+  color: #999999;
+}
+
+/* SF category badge */
+.sf-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  font-family: var(--font-heading), Impact, sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #FFFFFF;
+  border-radius: 0;
+}
+.sf-badge-orange { background: linear-gradient(90deg, #E8520A, #F5A623); }
+.sf-badge-teal   { background: #0A8A8A; }
+.sf-badge-black  { background: #1A1A1A; }
+
+/* Section heading with left orange bar */
+.sf-section-title {
+  font-family: var(--font-heading), Impact, sans-serif;
+  font-weight: 900;
+  font-size: clamp(28px, 4vw, 48px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #1A1A1A;
+  border-left: 6px solid #E8520A;
+  padding-left: 16px;
+  line-height: 1;
+}
+
+/* Orange animated underline for links */
+.sf-link {
+  color: #1A1A1A;
+  text-decoration: none;
+  position: relative;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.sf-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #E8520A;
+  transition: width 0.2s ease;
+}
+.sf-link:hover::after { width: 100%; }
+.sf-link:hover { color: #E8520A; }
+
+/* Pagination button */
+.sf-page-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #CCCCCC;
+  border-radius: 0;
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #1A1A1A;
+  background: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.sf-page-btn:hover,
+.sf-page-btn.active {
+  background: linear-gradient(135deg, #E8520A 0%, #F5A623 100%);
+  border-color: transparent;
+  color: #FFFFFF;
+}
+.sf-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* HP bar (retro style for the lobby view before match starts) */
+.sf-hp-bar {
+  height: 16px;
+  background: #1A1A1A;
+  border: 2px solid #444444;
+  border-radius: 0;
+  overflow: hidden;
+}
+.sf-hp-fill {
+  height: 100%;
+  transition: width 0.3s ease-out;
+  background: linear-gradient(90deg, #00C040, #00FF41);
+}

@@ -1,6 +1,18 @@
 import type { Metadata } from "next";
+import { Barlow_Condensed, Barlow } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
+
+const barlowCondensed = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "800", "900"],
+  variable: "--font-heading",
+});
+const barlow = Barlow({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-body",
+});
 
 export const metadata: Metadata = {
   title: "Script Fighter: Arcade Edition",
@@ -13,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${barlowCondensed.variable} ${barlow.variable}`}>
       <body>
         {children}
         <Toaster
