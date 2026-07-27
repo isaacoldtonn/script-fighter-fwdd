@@ -73,7 +73,6 @@ router.post('/register', async (req, res) => {
       .insert([
         {
           user_id: newUser.user_id,
-          rank: 0,
           wins: 0,
           total_matches: 0,
           win_rate: 0.00,

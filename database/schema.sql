@@ -137,11 +137,12 @@ AFTER INSERT ON matches
 FOR EACH ROW
 EXECUTE FUNCTION update_leaderboard_after_match();
 
--- Ranks are recalculated for ALL remaining rows whenever a leaderboard row is
--- removed (e.g. a user is deleted and their row is removed via ON DELETE
--- CASCADE), so surviving users don't keep stale, gapped rank numbers
--- (e.g. 1,2,3,8,9 after deleting ranks 4-7).
-CREATE OR REPLACE FUNCTION recalculate_leaderboard_ranks_after_delete()
+-- Ranks are recalculated for ALL rows whenever a leaderboard row is removed
+-- (e.g. a user is deleted and their row is removed via ON DELETE CASCADE) or
+-- inserted (e.g. a new user registers), so surviving/new users don't keep
+-- stale, gapped rank numbers (e.g. 1,2,3,8,9 after deleting ranks 4-7) and a
+-- fresh row's default rank of 0 doesn't outrank every real player.
+CREATE OR REPLACE FUNCTION recalculate_leaderboard_ranks()
 RETURNS TRIGGER AS $$
 BEGIN
     WITH ranked_users AS (
@@ -163,4 +164,10 @@ DROP TRIGGER IF EXISTS trigger_recalculate_leaderboard_on_delete ON leaderboard;
 CREATE TRIGGER trigger_recalculate_leaderboard_on_delete
 AFTER DELETE ON leaderboard
 FOR EACH STATEMENT
-EXECUTE FUNCTION recalculate_leaderboard_ranks_after_delete();
+EXECUTE FUNCTION recalculate_leaderboard_ranks();
+
+DROP TRIGGER IF EXISTS trigger_recalculate_leaderboard_on_insert ON leaderboard;
+CREATE TRIGGER trigger_recalculate_leaderboard_on_insert
+AFTER INSERT ON leaderboard
+FOR EACH STATEMENT
+EXECUTE FUNCTION recalculate_leaderboard_ranks();
