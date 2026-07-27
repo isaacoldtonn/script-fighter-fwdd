@@ -346,7 +346,6 @@ export default function LobbyPage() {
           hp: battleState.player2Hp,
           profile_picture_url: player2.profile_picture_url,
         }}
-        phase={battleState.phase}
         currentQuestion={battleState.currentQuestion}
         roundResult={battleState.roundResult}
         matchWinnerId={battleState.matchWinnerId}

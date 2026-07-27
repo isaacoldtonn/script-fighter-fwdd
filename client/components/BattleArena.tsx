@@ -34,7 +34,6 @@ interface RoundResult {
 interface BattleArenaProps {
   player1: Fighter;
   player2: Fighter;
-  phase: "idle" | "question" | "resolving" | "ended";
   currentQuestion: CurrentQuestion | null;
   roundResult: RoundResult | null;
   matchWinnerId: string | null;
@@ -48,7 +47,6 @@ type AnimState = "idle" | "attack" | "fainted";
 export default function BattleArena({
   player1,
   player2,
-  phase,
   currentQuestion,
   roundResult,
   matchWinnerId,
@@ -156,10 +154,15 @@ export default function BattleArena({
               />
             </div>
 
-            <div className="flex flex-col items-center flex-shrink-0">
+            <div className="flex flex-col items-center flex-shrink-0 gap-1.5">
               <span className="text-yellow-400 font-black text-xl border-2 border-yellow-400 px-3 py-1 tracking-widest">
                 VS
               </span>
+              {currentQuestion && (
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300 bg-black/50 px-2 py-0.5 rounded whitespace-nowrap">
+                  Round {currentQuestion.round_number} · {currentQuestion.difficulty}
+                </span>
+              )}
             </div>
 
             <div className="flex-1">
@@ -283,95 +286,6 @@ export default function BattleArena({
           </div>
         )}
 
-        {/* QUESTION OVERLAY — slides up from bottom when phase is 'question' */}
-        <div
-          className={`absolute bottom-0 left-0 right-0 z-20 transition-transform duration-500 ease-out ${
-            phase === "question" ? "translate-y-0" : "translate-y-full"
-          }`}
-        >
-          <div className="bg-black/85 backdrop-blur-sm border-t-2 border-yellow-400/50 px-6 py-4">
-            {currentQuestion && (
-              <>
-                {/* Round info */}
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-yellow-400 font-bold text-sm tracking-widest uppercase">
-                    Round {currentQuestion.round_number}
-                  </span>
-                  <span
-                    className={`text-xs font-bold px-2 py-1 rounded uppercase tracking-widest ${
-                      currentQuestion.difficulty === "easy"
-                        ? "bg-green-600/50 text-green-300"
-                        : currentQuestion.difficulty === "medium"
-                        ? "bg-yellow-600/50 text-yellow-300"
-                        : "bg-red-600/50 text-red-300"
-                    }`}
-                  >
-                    {currentQuestion.difficulty}
-                  </span>
-                </div>
-
-                {/* Code snippet */}
-                <pre className="bg-gray-900/80 border border-gray-600 rounded p-3 text-green-400 text-sm font-mono mb-4 overflow-x-auto whitespace-pre-wrap">
-                  {currentQuestion.code_snippet}
-                </pre>
-
-                {/* Answer options — Player 1 left, Player 2 right */}
-                <div className="flex gap-4">
-                  {/* Player 1 options */}
-                  <div className="flex-1">
-                    <div className="text-xs text-gray-400 mb-2 uppercase tracking-widest">
-                      {player1.username} (A / S / D)
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      {[
-                        { key: "A", option: currentQuestion.option_1 },
-                        { key: "S", option: currentQuestion.option_2 },
-                        { key: "D", option: currentQuestion.option_3 },
-                      ].map(({ key, option }) => (
-                        <div
-                          key={key}
-                          className="flex items-center gap-2 bg-blue-900/40 border border-blue-500/30 rounded px-2 py-1"
-                        >
-                          <span className="bg-blue-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded flex-shrink-0">
-                            {key}
-                          </span>
-                          <span className="text-white text-xs">{option}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Divider */}
-                  <div className="w-px bg-gray-600" />
-
-                  {/* Player 2 options */}
-                  <div className="flex-1">
-                    <div className="text-xs text-gray-400 mb-2 uppercase tracking-widest text-right">
-                      {player2.username} (J / K / L)
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      {[
-                        { key: "J", option: currentQuestion.option_1 },
-                        { key: "K", option: currentQuestion.option_2 },
-                        { key: "L", option: currentQuestion.option_3 },
-                      ].map(({ key, option }) => (
-                        <div
-                          key={key}
-                          className="flex items-center gap-2 bg-red-900/40 border border-red-500/30 rounded px-2 py-1 flex-row-reverse"
-                        >
-                          <span className="bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded flex-shrink-0">
-                            {key}
-                          </span>
-                          <span className="text-white text-xs text-right">{option}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );
