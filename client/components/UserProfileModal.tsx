@@ -73,85 +73,95 @@ export default function UserProfileModal({ user_id, isOpen, onClose }: UserProfi
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-sf-black/70 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl relative"
+        className="sf-card w-full max-w-sm p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-sf-orange transition-colors z-10"
         >
           <X className="w-5 h-5" />
         </button>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-            <Loader2 className="w-8 h-8 animate-spin mb-3 text-indigo-500" />
-            <p className="text-sm">Loading profile...</p>
+          <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+            <Loader2 className="w-8 h-8 animate-spin mb-3 text-sf-orange" />
+            <p className="font-body text-sm">Loading profile...</p>
           </div>
         ) : error || !profile ? (
-          <div className="py-16 text-center text-rose-400 text-sm font-medium">
+          <div className="py-16 text-center text-sf-red font-body text-sm font-semibold">
             {error || "Profile not found."}
           </div>
         ) : (
           <div className="flex flex-col items-center text-center">
             <UserAvatar profile_picture_url={profile.profile_picture_url} username={profile.username} size="xl" />
-            <h2 className="text-xl font-extrabold text-white mt-4">{profile.username}</h2>
+            <h2 className="font-heading font-800 text-xl uppercase tracking-wide text-sf-black mt-4">
+              {profile.username}
+            </h2>
             {profile.description && (
-              <p className="text-sm text-slate-400 italic mt-1.5 max-w-xs">{profile.description}</p>
+              <p className="font-body text-sm text-gray-500 italic mt-1.5 max-w-xs">{profile.description}</p>
             )}
 
-            <div className="w-full h-px bg-slate-800 my-5" />
+            <div className="w-full h-px bg-sf-gray-border my-5" />
 
             <div className="w-full grid grid-cols-2 gap-3">
-              <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Total Games</p>
-                <p className="text-lg font-extrabold text-white flex items-center justify-center gap-1.5">
-                  <Swords className="w-4 h-4 text-indigo-400" />
+              <div className="bg-sf-gray-card border border-sf-gray-border p-3">
+                <p className="font-heading font-700 text-[10px] uppercase tracking-widest text-gray-500 mb-1">
+                  Total Games
+                </p>
+                <p className="font-heading font-800 text-lg text-sf-black flex items-center justify-center gap-1.5">
+                  <Swords className="w-4 h-4 text-sf-orange" />
                   {profile.total_matches}
                 </p>
               </div>
-              <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Total Wins</p>
-                <p className="text-lg font-extrabold text-white flex items-center justify-center gap-1.5">
-                  <Trophy className="w-4 h-4 text-amber-400" />
+              <div className="bg-sf-gray-card border border-sf-gray-border p-3">
+                <p className="font-heading font-700 text-[10px] uppercase tracking-widest text-gray-500 mb-1">
+                  Total Wins
+                </p>
+                <p className="font-heading font-800 text-lg text-sf-black flex items-center justify-center gap-1.5">
+                  <Trophy className="w-4 h-4 text-sf-orange-lite" />
                   {profile.total_wins}
                 </p>
               </div>
-              <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Win Rate</p>
-                <p className="text-lg font-extrabold text-white flex items-center justify-center gap-1.5">
-                  <Percent className="w-4 h-4 text-emerald-400" />
+              <div className="bg-sf-gray-card border border-sf-gray-border p-3">
+                <p className="font-heading font-700 text-[10px] uppercase tracking-widest text-gray-500 mb-1">
+                  Win Rate
+                </p>
+                <p className="font-heading font-800 text-lg text-sf-black flex items-center justify-center gap-1.5">
+                  <Percent className="w-4 h-4 text-sf-teal" />
                   {profile.win_rate}%
                 </p>
               </div>
-              <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Rank</p>
-                <p className="text-lg font-extrabold text-white flex items-center justify-center gap-1.5">
-                  <Hash className="w-4 h-4 text-purple-400" />
+              <div className="bg-sf-gray-card border border-sf-gray-border p-3">
+                <p className="font-heading font-700 text-[10px] uppercase tracking-widest text-gray-500 mb-1">
+                  Rank
+                </p>
+                <p className="font-heading font-800 text-lg text-sf-black flex items-center justify-center gap-1.5">
+                  <Hash className="w-4 h-4 text-sf-red" />
                   {profile.rank || "—"}
                 </p>
               </div>
             </div>
 
             <div className="w-full mt-4">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-400 mb-1.5">
+              <div className="flex items-center justify-between font-heading font-700 text-xs text-gray-500 mb-1.5">
                 <span>XP: {profile.xp}</span>
-                <span className="font-mono text-slate-500">{xpIntoLevel}/500</span>
+                <span className="text-gray-400">{xpIntoLevel}/500</span>
               </div>
-              <div className="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+              <div className="w-full h-2.5 bg-sf-gray-bg border border-sf-gray-border overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
+                  className="h-full sf-gradient transition-all duration-500"
                   style={{ width: `${xpPercent}%` }}
                 />
               </div>
             </div>
 
-            <p className="text-xs text-slate-500 mt-4">Member since {formatDate(profile.created_at)}</p>
+            <p className="font-body text-xs text-gray-400 mt-4">Member since {formatDate(profile.created_at)}</p>
           </div>
         )}
       </div>
