@@ -4,21 +4,12 @@ const PORT = process.env.PORT || 5000;
 const BASE_URL = `http://localhost:${PORT}`;
 
 module.exports = function(io) {
-  // In-memory store: rooms[session_code] = { players: [] }
-  // Each player: { socket_id, user_id, username, role: 'player1'|'player2' }
+  // rooms[session_code] = { players: [{ socket_id, user_id, username, role }], ... }
   const rooms = {};
 
   io.on('connection', (socket) => {
-    // EVENT: session:join
-    // Payload: { session_code, user_id, username, role }
-    // 'host' role just joins the room to receive events — do not add to player list.
-    // 'player1' or 'player2' role: add to rooms[session_code].players[]
-    // After joining, broadcast 'session:player_joined' to the whole room:
-    //   Payload: { user_id, username, role }
-    // If the room doesn't exist yet, create it: rooms[session_code] = { players: [] }
-
+    // 'host' just joins the room to receive events — not added to the player list.
     socket.on('session:join', ({ session_code, user_id, username, role: clientRole }) => {
-      // Step 1: Always add this socket to the room first
       socket.join(session_code);
 
       if (!rooms[session_code]) {
@@ -26,7 +17,7 @@ module.exports = function(io) {
       }
       const room = rooms[session_code];
 
-      // Step 2: Check if this user is already a player (reconnecting)
+      // Reconnecting player — same user_id already in the room
       const existingPlayer = room.players.find(p => p.user_id === user_id);
       if (existingPlayer) {
         // Update their socket_id to the new socket
@@ -46,7 +37,6 @@ module.exports = function(io) {
         return;
       }
 
-      // Step 3: New player joining for the first time
       let role = 'host';
       if (room.players.length === 0) role = 'player1';
       else if (room.players.length === 1) role = 'player2';
@@ -64,7 +54,6 @@ module.exports = function(io) {
       io.to(session_code).emit('session:player_joined', { user_id, username, role });
     });
 
-    // EVENT: disconnect
     // Remove the player from rooms if they disconnect before the match starts.
     socket.on('disconnect', () => {
       for (const code in rooms) {
@@ -78,7 +67,6 @@ module.exports = function(io) {
       }
     });
 
-    // EVENT: session:ready
     socket.on('session:ready', async ({ session_code, session_id, player1_id, player2_id }) => {
       console.log(`[gameHandler] EVENT session:ready -> code: ${session_code}, id: ${session_id}, p1: ${player1_id}, p2: ${player2_id}`);
       const room = rooms[session_code];
@@ -129,7 +117,6 @@ module.exports = function(io) {
       await startNewRound(session_code, io);
     });
 
-    // EVENT: round:key_strike
     socket.on('round:key_strike', async (data) => {
       console.log('round:key_strike received:', JSON.stringify(data));
       const { session_code, player } = data || {};

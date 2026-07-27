@@ -38,9 +38,8 @@ interface PublicStats {
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-// REC4 — resize client-side to max 400x400 before upload, to save bandwidth
-// and storage. Keeps PNGs as PNG (transparency), re-encodes everything else
-// as JPEG.
+// Resize client-side to max 400x400 before upload, to save bandwidth and
+// storage. Keeps PNGs as PNG (transparency), re-encodes everything else as JPEG.
 function resizeImage(file: File, maxSize = 400): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new window.Image();
@@ -167,7 +166,7 @@ export default function ProfilePage() {
     };
   }, [router]);
 
-  // REC3 — warn before leaving the tab/window with unsaved edits.
+  // Warn before leaving the tab/window with unsaved edits.
   const hasUnsavedChanges =
     !!pendingAvatarFile ||
     infoDirty ||

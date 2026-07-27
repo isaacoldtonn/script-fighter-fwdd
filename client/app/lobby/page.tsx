@@ -180,13 +180,11 @@ export default function LobbyPage() {
 
     const initLobby = async () => {
       try {
-        // 1. Call GET /api/auth/me
         const meRes = await api.get("/api/auth/me");
         if (isMounted) {
           setUser(meRes.data);
         }
 
-        // 2. Call POST /api/sessions
         const sessionRes = await api.post("/api/sessions");
         if (isMounted) {
           const sessionData = sessionRes.data;

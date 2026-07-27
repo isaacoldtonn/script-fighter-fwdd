@@ -103,8 +103,7 @@ export default function MatchResultPage() {
 
   // Keyboard nav re-attaches once gameState resolves (a single, one-time
   // transition from null), then reads the latest selection via a ref so
-  // Enter doesn't act on a stale closure — same pattern as /lobby's
-  // matchStartedRef documented in CLAUDE.md.
+  // Enter doesn't act on a stale closure.
   useEffect(() => {
     selectedMenuRef.current = selectedMenu;
   }, [selectedMenu]);

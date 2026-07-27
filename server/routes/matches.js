@@ -2,7 +2,6 @@ const express = require('express');
 const supabase = require('../lib/supabase');
 const router = express.Router();
 
-// POST /api/matches: (no auth needed — called internally by Socket.io handler)
 router.post('/', async (req, res) => {
   try {
     const { session_id, player1_id, player2_id } = req.body;
@@ -37,7 +36,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PATCH /api/matches/:id: (no auth needed — called internally)
 router.patch('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -111,7 +109,6 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// POST /api/matches/:id/rounds: (no auth needed — called internally)
 router.post('/:id/rounds', async (req, res) => {
   try {
     const { id: match_id } = req.params;

@@ -6,9 +6,8 @@ const verifyToken = require('../middleware/verifyToken');
 
 const router = express.Router();
 
-// Duplicated from auth.js on purpose — auth.js's register/login logic is
-// off-limits to touch for this feature, so these validators are kept local
-// to this file instead of exported/shared from there.
+// Local copies of the validators in auth.js (kept separate to avoid coupling
+// the two route files together).
 const isValidUsername = (username) => {
   return typeof username === 'string' && /^[a-zA-Z0-9_]{3,20}$/.test(username);
 };

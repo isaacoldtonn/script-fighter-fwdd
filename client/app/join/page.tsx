@@ -44,20 +44,18 @@ function JoinContent() {
       }
 
       try {
-        // 1. Call GET /api/auth/me (Player must be logged in)
         const meRes = await api.get("/api/auth/me");
         if (isMounted) {
           setUser(meRes.data);
         }
 
-        // 2. Call GET /api/sessions/${token}
         const sessionRes = await api.get(`/api/sessions/${token}`);
         if (isMounted) {
           const sessionData = sessionRes.data;
           setSession(sessionData);
           setLoading(false);
 
-          // Store session_id, session_code, and user_id in sessionStorage for use in Slice 3
+          // Stash for the game screens further down the flow
           if (typeof window !== "undefined" && window.sessionStorage) {
             sessionStorage.setItem("session_id", sessionData.session_id);
             sessionStorage.setItem("session_code", sessionData.session_code);

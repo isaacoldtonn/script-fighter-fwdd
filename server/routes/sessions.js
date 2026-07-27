@@ -14,7 +14,6 @@ const generateSessionCode = () => {
   return `${randomLetters}-${randomDigits}`;
 };
 
-// POST /api/sessions: (protected with verifyToken)
 router.post('/', verifyToken, async (req, res) => {
   try {
     let session_code = generateSessionCode();
@@ -82,9 +81,8 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/sessions/join/:session_code: (public — no auth needed)
-// Placed ABOVE /:token so the single-segment token matcher below never
-// intercepts this two-segment path.
+// Placed above /:token so this two-segment path isn't swallowed by that
+// single-segment matcher.
 router.get('/join/:session_code', async (req, res) => {
   try {
     const session_code = (req.params.session_code || '').toUpperCase();
@@ -115,7 +113,6 @@ router.get('/join/:session_code', async (req, res) => {
   }
 });
 
-// GET /api/sessions/:token: (public — no auth needed)
 router.get('/:token', async (req, res) => {
   try {
     const { token } = req.params;
@@ -146,7 +143,6 @@ router.get('/:token', async (req, res) => {
   }
 });
 
-// PATCH /api/sessions/:id: (protected with verifyToken)
 router.patch('/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;

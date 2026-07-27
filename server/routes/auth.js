@@ -7,7 +7,6 @@ require('dotenv').config();
 
 const router = express.Router();
 
-// Helper validation functions
 const isValidUsername = (username) => {
   return typeof username === 'string' && /^[a-zA-Z0-9_]{3,20}$/.test(username);
 };
@@ -32,7 +31,6 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Invalid validation for username, email, or password' });
     }
 
-    // Check USERS table: if username OR email already exists -> 409 conflict
     const { data: existingUsers, error: checkError } = await supabase
       .from('users')
       .select('user_id, username, email')
@@ -47,10 +45,8 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ error: 'Username or email already taken' });
     }
 
-    // Hash password with bcrypt (10 salt rounds)
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Insert new row into USERS table
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert([
@@ -72,7 +68,6 @@ router.post('/register', async (req, res) => {
       return res.status(500).json({ error: 'Failed to create user' });
     }
 
-    // Also insert a matching row into LEADERBOARD (user_id, all stats at default 0)
     const { error: lbError } = await supabase
       .from('leaderboard')
       .insert([
@@ -90,7 +85,6 @@ router.post('/register', async (req, res) => {
       console.error('Error creating leaderboard row:', lbError);
     }
 
-    // Return 201 + { user_id, username, email }
     return res.status(201).json({
       user_id: newUser.user_id,
       username: newUser.username,
@@ -110,7 +104,6 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Fetch user from USERS where email matches. If not found -> 401.
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
@@ -121,13 +114,11 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Compare password with bcrypt.compare. If wrong -> 401.
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Sign a JWT with payload { user_id, username, email }
     const payload = {
       user_id: user.user_id,
       username: user.username,
@@ -137,7 +128,6 @@ router.post('/login', async (req, res) => {
       expiresIn: '1h',
     });
 
-    // Set cookie
     res.cookie('sf_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -145,7 +135,6 @@ router.post('/login', async (req, res) => {
       maxAge: 3600000,
     });
 
-    // Return 200 + { user_id, username, email }
     return res.status(200).json({
       user_id: user.user_id,
       username: user.username,

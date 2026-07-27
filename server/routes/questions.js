@@ -2,9 +2,8 @@ const express = require('express');
 const supabase = require('../lib/supabase');
 const router = express.Router();
 
-// GET /api/questions/random:
 // Query param: ?difficulty=easy|medium|hard (optional)
-// CRITICAL: Remove correct_option_index from the response before returning unless internal header is present.
+// correct_option_index is stripped from the response unless the internal header is set.
 router.get('/random', async (req, res) => {
   try {
     const { difficulty, internal } = req.query;
