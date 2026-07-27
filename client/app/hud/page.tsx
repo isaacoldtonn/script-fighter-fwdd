@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getSocket } from "@/lib/socket";
-import { Shield, Loader2, Radio, User, Swords, AlertCircle, Clock } from "lucide-react";
+import { Shield, Loader2, Radio, User, Swords, Clock } from "lucide-react";
 
 interface GameState {
   session_code: string;
@@ -181,9 +181,9 @@ export default function HudPage() {
 
   if (!gameState) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center animate-pulse">
-        <Loader2 className="w-10 h-10 animate-spin text-indigo-500 mb-4" />
-        <p className="text-slate-400 font-medium">Loading HUD...</p>
+      <div className="min-h-screen sf-bg flex flex-col items-center justify-center p-6 text-center">
+        <Loader2 className="w-10 h-10 animate-spin text-sf-orange mb-4" />
+        <p className="font-heading font-700 uppercase tracking-widest text-sf-black">Loading HUD...</p>
       </div>
     );
   }
@@ -192,60 +192,58 @@ export default function HudPage() {
   const keyHints = isPlayer1 ? ["A", "S", "D"] : ["J", "K", "L"];
 
   // Helper for difficulty badge coloring
-  const getDifficultyColor = (diff?: string) => {
+  const getDifficultyBadge = (diff?: string) => {
     switch (diff?.toLowerCase()) {
       case "easy":
-        return "bg-emerald-500/10 border-emerald-500/30 text-emerald-400";
+        return "sf-badge-teal";
       case "medium":
-        return "bg-amber-500/10 border-amber-500/30 text-amber-400";
+        return "sf-badge-orange";
       case "hard":
-        return "bg-rose-500/10 border-rose-500/30 text-rose-400";
+        return "sf-badge-red";
       default:
-        return "bg-indigo-500/10 border-indigo-500/30 text-indigo-400";
+        return "sf-badge-black";
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white flex flex-col justify-between p-4 sm:p-6 selection:bg-indigo-500 selection:text-white max-w-md mx-auto w-full relative overflow-hidden">
-      {/* Background Glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="min-h-screen sf-bg flex flex-col justify-between p-4 sm:p-6 selection:bg-sf-orange selection:text-white max-w-md mx-auto w-full relative overflow-hidden">
       {/* PHASE: WAITING */}
       {phase === "waiting" && (
         isReconnecting ? (
-          <div className="flex-1 flex items-center justify-center min-h-screen z-10 animate-fade-in">
+          <div className="flex-1 flex items-center justify-center min-h-screen z-10">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4" />
-              <p className="text-gray-400">Loading next round...</p>
+              <Loader2 className="w-10 h-10 animate-spin text-sf-orange mx-auto mb-4" />
+              <p className="font-heading font-700 uppercase tracking-widest text-sf-black">
+                Loading next round...
+              </p>
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center animate-fade-in z-10">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold mb-6 uppercase tracking-wider shadow-sm">
-              <Shield className="w-4 h-4" />
+          <div className="flex-1 flex flex-col items-center justify-center text-center z-10">
+            <div className="sf-badge sf-badge-orange inline-flex items-center gap-1.5 mb-6">
+              <Shield className="w-3.5 h-3.5" />
               <span>Script Fighter Arena</span>
             </div>
 
             <div className="relative flex items-center justify-center mb-6">
-              <span className="absolute w-16 h-16 rounded-full bg-indigo-500/20 animate-ping" />
-              <span className="relative w-12 h-12 rounded-full bg-indigo-500/30 border border-indigo-500/50 flex items-center justify-center text-indigo-400 shadow-lg shadow-indigo-500/20">
+              <span className="absolute w-16 h-16 rounded-full bg-sf-orange/20 animate-ping" />
+              <span className="relative w-12 h-12 rounded-full border-2 border-sf-orange flex items-center justify-center text-sf-orange">
                 <Radio className="w-6 h-6 animate-pulse" />
               </span>
             </div>
 
-            <h1 className="text-3xl font-extrabold tracking-tight text-white mb-2">
+            <h1 className="font-heading font-900 text-3xl uppercase tracking-tight text-sf-black mb-2">
               Script Fighter
             </h1>
-            <p className="text-indigo-200 font-bold text-lg mb-2">
+            <p className="font-heading font-700 text-lg text-sf-black mb-2">
               Waiting for host to start…
             </p>
-            <p className="text-slate-400 text-xs max-w-xs leading-relaxed">
-              You are connected as <span className="text-white font-bold">{gameState.username}</span> ({isPlayer1 ? "Player 1" : "Player 2"}). Keep this screen open!
+            <p className="font-body text-gray-500 text-xs max-w-xs leading-relaxed">
+              You are connected as <span className="text-sf-black font-bold">{gameState.username}</span> ({isPlayer1 ? "Player 1" : "Player 2"}). Keep this screen open!
             </p>
 
-            <div className="mt-8 px-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800 font-mono text-xs text-slate-400">
-              Session: <span className="text-indigo-400 font-bold">{gameState.session_code}</span>
+            <div className="mt-8 bg-white border-2 border-sf-black px-4 py-2 font-heading text-xs text-gray-500">
+              Session: <span className="text-sf-orange font-bold">{gameState.session_code}</span>
             </div>
           </div>
         )
@@ -253,54 +251,56 @@ export default function HudPage() {
 
       {/* PHASE: QUESTION OR ANSWERED */}
       {(phase === "question" || phase === "answered") && (
-        <div className="flex-1 flex flex-col justify-between z-10 animate-fade-in gap-4">
+        <div className="flex-1 flex flex-col justify-between z-10 gap-4">
           {/* Top Section: HP Bars */}
-          <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-md shadow-xl space-y-3">
+          <div className="sf-card p-4 space-y-3">
             {/* Row 1: Your HP (Green Bar) */}
             <div>
               <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-                <div className="flex items-center gap-1.5 text-white">
-                  <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                <div className="flex items-center gap-1.5 text-sf-black">
+                  <div className="w-5 h-5 border-2 border-sf-black flex items-center justify-center text-sf-black">
                     <User className="w-3 h-3" />
                   </div>
-                  <span className="truncate max-w-[150px]">{gameState.username} (You)</span>
-                  <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-800 text-slate-300 font-mono">
+                  <span className="font-heading truncate max-w-[150px]">{gameState.username} (You)</span>
+                  <span
+                    className={`px-1.5 py-0.2 text-[10px] font-heading text-white ${
+                      isPlayer1 ? "bg-blue-600" : "bg-red-600"
+                    }`}
+                  >
                     {isPlayer1 ? "P1" : "P2"}
                   </span>
                 </div>
-                <span className="font-mono text-emerald-400 font-extrabold text-sm">
+                <span className="font-mono text-emerald-600 font-extrabold text-sm">
                   {Math.max(0, myHp)} HP
                 </span>
               </div>
-              <div className="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-slate-800 p-0.5">
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-500 shadow-sm"
-                  style={{ width: `${Math.min(100, Math.max(0, myHp))}%` }}
-                />
+              <div className="sf-hp-bar">
+                <div className="sf-hp-fill" style={{ width: `${Math.min(100, Math.max(0, myHp))}%` }} />
               </div>
             </div>
 
             {/* Row 2: Opponent HP (Red Bar) */}
             <div>
               <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-                <div className="flex items-center gap-1.5 text-slate-300">
-                  <div className="w-5 h-5 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+                <div className="flex items-center gap-1.5 text-gray-600">
+                  <div className="w-5 h-5 border-2 border-sf-gray-border flex items-center justify-center text-sf-red">
                     <Swords className="w-3 h-3" />
                   </div>
-                  <span>Opponent</span>
-                  <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-800 text-slate-400 font-mono">
+                  <span className="font-heading">Opponent</span>
+                  <span
+                    className={`px-1.5 py-0.2 text-[10px] font-heading text-white ${
+                      isPlayer1 ? "bg-red-600" : "bg-blue-600"
+                    }`}
+                  >
                     {isPlayer1 ? "P2" : "P1"}
                   </span>
                 </div>
-                <span className="font-mono text-rose-400 font-extrabold text-sm">
+                <span className="font-mono text-sf-red font-extrabold text-sm">
                   {Math.max(0, opponentHp)} HP
                 </span>
               </div>
-              <div className="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-slate-800 p-0.5">
-                <div
-                  className="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-full transition-all duration-500 shadow-sm"
-                  style={{ width: `${Math.min(100, Math.max(0, opponentHp))}%` }}
-                />
+              <div className="sf-hp-bar">
+                <div className="sf-hp-fill-red" style={{ width: `${Math.min(100, Math.max(0, opponentHp))}%` }} />
               </div>
             </div>
           </div>
@@ -308,18 +308,15 @@ export default function HudPage() {
           {/* Middle Section: Question */}
           <div className="flex-1 flex flex-col justify-center my-2">
             <div className="flex items-center justify-between mb-3">
-              <span className="px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-extrabold uppercase tracking-wider shadow-sm">
-                Round {question?.round_number || 1}
-              </span>
-              <span className={`px-2.5 py-1 rounded-full border text-[10px] font-extrabold uppercase tracking-widest ${getDifficultyColor(question?.difficulty)}`}>
+              <span className="sf-badge sf-badge-black">Round {question?.round_number || 1}</span>
+              <span className={`sf-badge ${getDifficultyBadge(question?.difficulty)}`}>
                 {question?.difficulty || "EASY"}
               </span>
             </div>
 
             {/* Code Block */}
-            <div className="bg-slate-950 border border-slate-800/90 rounded-2xl p-4 shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-60" />
-              <pre className="font-mono text-xs sm:text-sm text-indigo-100 leading-relaxed overflow-x-auto whitespace-pre-wrap break-words py-2">
+            <div className="sf-code-panel p-4">
+              <pre className="font-mono text-xs sm:text-sm text-sf-orange-lite leading-relaxed overflow-x-auto whitespace-pre-wrap break-words py-2">
                 <code>{question?.code_snippet || "Loading snippet..."}</code>
               </pre>
             </div>
@@ -329,13 +326,13 @@ export default function HudPage() {
           <div className="relative">
             {/* Processing / Countdown Overlay for Answered Phase */}
             {phase === "answered" && (
-              <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center z-20 border border-indigo-500/30 p-4 text-center animate-fade-in shadow-2xl">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-400 mb-2" />
-                <p className="text-white font-extrabold text-sm uppercase tracking-wider mb-1">
+              <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center z-20 border-2 border-sf-black p-4 text-center">
+                <Loader2 className="w-8 h-8 animate-spin text-sf-orange mb-2" />
+                <p className="font-heading font-800 text-sf-black text-sm uppercase tracking-wider mb-1">
                   Processing…
                 </p>
-                <div className="flex items-center gap-1.5 text-indigo-300 text-xs font-bold bg-indigo-950/80 border border-indigo-500/40 px-3 py-1.5 rounded-full mt-2">
-                  <Clock className="w-3.5 h-3.5 animate-pulse text-indigo-400" />
+                <div className="flex items-center gap-1.5 text-sf-orange text-xs font-bold border-2 border-sf-orange px-3 py-1.5 mt-2">
+                  <Clock className="w-3.5 h-3.5 animate-pulse" />
                   <span>Showing result in {countdown}…</span>
                 </div>
               </div>
@@ -347,19 +344,19 @@ export default function HudPage() {
                 {[question?.option_1, question?.option_2, question?.option_3].map((opt, idx) => (
                   <div
                     key={idx}
-                    className="w-full bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex items-center gap-3.5 select-none shadow-md"
+                    className="w-full bg-white border-2 border-sf-black p-3 flex items-center gap-3.5 select-none"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-800 text-white font-mono font-black text-sm flex items-center justify-center shadow-inner border border-indigo-400/30 shrink-0">
+                    <div className="w-8 h-8 sf-gradient text-white font-heading font-900 text-sm flex items-center justify-center shrink-0">
                       {keyHints[idx]}
                     </div>
-                    <span className="font-mono text-xs sm:text-sm font-semibold text-slate-200 truncate">
+                    <span className="font-mono text-xs sm:text-sm font-semibold text-sf-black truncate">
                       {opt || `Option ${idx + 1}`}
                     </span>
                   </div>
                 ))}
               </div>
 
-              <p className="text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 pt-1">
+              <p className="text-center text-[11px] font-heading font-700 uppercase tracking-wider text-gray-500 pt-1">
                 Press your key on the shared keyboard to answer
               </p>
             </div>

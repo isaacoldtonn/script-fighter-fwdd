@@ -144,6 +144,7 @@
 .sf-badge-orange { background: linear-gradient(90deg, #E8520A, #F5A623); }
 .sf-badge-teal   { background: #0A8A8A; }
 .sf-badge-black  { background: #1A1A1A; }
+.sf-badge-red    { background: #C0392B; }
 
 /* Section heading with left orange bar */
 .sf-section-title {
@@ -219,4 +220,26 @@
   height: 100%;
   transition: width 0.3s ease-out;
   background: linear-gradient(90deg, #00C040, #00FF41);
+}
+.sf-hp-fill-red {
+  height: 100%;
+  transition: width 0.3s ease-out;
+  background: linear-gradient(90deg, #C0392B, #FF4436);
+}
+
+/* Dark code/terminal panel — used to display Python snippets on light SF pages */
+.sf-code-panel {
+  background: #1A1A1A;
+  border: 2px solid #1A1A1A;
+  position: relative;
+  overflow: hidden;
+}
+.sf-code-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #E8520A, #F5A623);
 }

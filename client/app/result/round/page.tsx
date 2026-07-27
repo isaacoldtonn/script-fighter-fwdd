@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSocket } from "@/lib/socket";
-import { Shield, Loader2, CheckCircle2, XCircle, HelpCircle, Clock, User, Swords, Sparkles } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, HelpCircle, Clock, User, Swords, Sparkles } from "lucide-react";
 
 interface GameState {
   session_code: string;
@@ -123,9 +123,11 @@ export default function RoundResultPage() {
 
   if (!gameState || !roundResult) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center animate-pulse">
-        <Loader2 className="w-10 h-10 animate-spin text-indigo-500 mb-4" />
-        <p className="text-slate-400 font-medium">Loading Round Result...</p>
+      <div className="min-h-screen sf-bg flex flex-col items-center justify-center p-6 text-center">
+        <Loader2 className="w-10 h-10 animate-spin text-sf-orange mb-4" />
+        <p className="font-heading font-700 uppercase tracking-widest text-sf-black">
+          Loading Round Result...
+        </p>
       </div>
     );
   }
@@ -174,25 +176,25 @@ export default function RoundResultPage() {
   const isMyAnswerCorrect = myAnswerIndex !== null && myAnswerIndex !== undefined && myAnswerIndex === roundResult.correct_option_index;
   const isOpponentAnswerCorrect = opponentAnswerIndex !== null && opponentAnswerIndex !== undefined && opponentAnswerIndex === roundResult.correct_option_index;
 
-  const getDifficultyColor = (diff?: string) => {
+  const getDifficultyBadge = (diff?: string) => {
     switch (diff?.toLowerCase()) {
       case "easy":
-        return "bg-emerald-500/10 border-emerald-500/30 text-emerald-400";
+        return "sf-badge-teal";
       case "medium":
-        return "bg-amber-500/10 border-amber-500/30 text-amber-400";
+        return "sf-badge-orange";
       case "hard":
-        return "bg-rose-500/10 border-rose-500/30 text-rose-400";
+        return "sf-badge-red";
       default:
-        return "bg-indigo-500/10 border-indigo-500/30 text-indigo-400";
+        return "sf-badge-black";
     }
   };
 
   const renderAnswerStatus = (text: string | null, isCorrect: boolean) => {
     if (text === null) {
       return (
-        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400">
+        <div className="flex items-center justify-between p-3 bg-gray-50 border-2 border-sf-gray-border text-gray-500">
           <span className="text-xs sm:text-sm font-mono italic">No answer</span>
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+          <div className="flex items-center gap-1.5 text-xs font-heading font-700 text-gray-400">
             <HelpCircle className="w-4 h-4" />
             <span>Timed out</span>
           </div>
@@ -202,9 +204,9 @@ export default function RoundResultPage() {
 
     if (isCorrect) {
       return (
-        <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/60 text-emerald-200 shadow-lg shadow-emerald-500/5">
+        <div className="flex items-center justify-between p-3 bg-emerald-50 border-2 border-emerald-600 text-emerald-800">
           <span className="text-xs sm:text-sm font-mono font-bold truncate pr-2">{text}</span>
-          <div className="flex items-center gap-1.5 text-xs font-extrabold text-emerald-400 shrink-0">
+          <div className="flex items-center gap-1.5 text-xs font-heading font-800 text-emerald-600 shrink-0">
             <CheckCircle2 className="w-4 h-4" />
             <span>Correct!</span>
           </div>
@@ -213,9 +215,9 @@ export default function RoundResultPage() {
     }
 
     return (
-      <div className="flex items-center justify-between p-3 rounded-xl bg-rose-950/50 border border-rose-500/60 text-rose-200 shadow-lg shadow-rose-500/5">
-        <span className="text-xs sm:text-sm font-mono font-medium truncate pr-2 line-through opacity-80">{text}</span>
-        <div className="flex items-center gap-1.5 text-xs font-extrabold text-rose-400 shrink-0">
+      <div className="flex items-center justify-between p-3 bg-red-50 border-2 border-sf-red text-sf-red">
+        <span className="text-xs sm:text-sm font-mono font-medium truncate pr-2 line-through opacity-70">{text}</span>
+        <div className="flex items-center gap-1.5 text-xs font-heading font-800 text-sf-red shrink-0">
           <XCircle className="w-4 h-4" />
           <span>Wrong</span>
         </div>
@@ -224,30 +226,21 @@ export default function RoundResultPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white flex flex-col justify-between p-4 sm:p-6 selection:bg-indigo-500 selection:text-white max-w-md mx-auto w-full relative overflow-hidden">
-      {/* Background Glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/3 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="min-h-screen sf-bg flex flex-col justify-between p-4 sm:p-6 max-w-md mx-auto w-full relative overflow-hidden">
       {/* Main Content Scrollable Area */}
-      <div className="flex-1 flex flex-col z-10 animate-fade-in space-y-4 my-auto py-2">
+      <div className="flex-1 flex flex-col z-10 space-y-4 my-auto py-2">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-extrabold uppercase tracking-wider shadow-sm">
-              Round {roundResult.round_number || 1} Result
-            </span>
-          </div>
-          <span className={`px-2.5 py-1 rounded-full border text-[10px] font-extrabold uppercase tracking-widest ${getDifficultyColor(roundResult.difficulty)}`}>
+          <span className="sf-badge sf-badge-black">Round {roundResult.round_number || 1} Result</span>
+          <span className={`sf-badge ${getDifficultyBadge(roundResult.difficulty)}`}>
             {roundResult.difficulty || "MEDIUM"}
           </span>
         </div>
 
         {/* Code Block */}
         {roundResult.code_snippet && (
-          <div className="bg-slate-950 border border-slate-800/90 rounded-2xl p-4 shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-60" />
-            <pre className="font-mono text-xs sm:text-sm text-indigo-100 leading-relaxed overflow-x-auto whitespace-pre-wrap break-words py-1">
+          <div className="sf-code-panel p-4">
+            <pre className="font-mono text-xs sm:text-sm text-sf-orange-lite leading-relaxed overflow-x-auto whitespace-pre-wrap break-words py-1">
               <code>{roundResult.code_snippet}</code>
             </pre>
           </div>
@@ -257,50 +250,50 @@ export default function RoundResultPage() {
         <div className="space-y-3">
           {/* Your Answer */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-indigo-400" />
+            <label className="block text-[11px] font-heading font-700 uppercase tracking-wider text-gray-500 mb-1 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-sf-orange" />
               <span>Your Answer</span>
             </label>
             {renderAnswerStatus(myAnswerText, isMyAnswerCorrect)}
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-gray-400 text-xs">⏱ Response time:</span>
-              <span className="text-white text-xs font-mono">{formatTime(myResponseMs)}</span>
+              <span className="text-gray-500 text-xs font-body">⏱ Response time:</span>
+              <span className="text-sf-black text-xs font-mono">{formatTime(myResponseMs)}</span>
               {bothCorrect && iWasRoundWinner && (
-                <span className="text-yellow-400 text-xs font-bold">⚡ Faster!</span>
+                <span className="text-sf-orange text-xs font-heading font-800">⚡ Faster!</span>
               )}
             </div>
           </div>
 
           {/* Opponent's Answer */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1.5">
-              <Swords className="w-3.5 h-3.5 text-purple-400" />
+            <label className="block text-[11px] font-heading font-700 uppercase tracking-wider text-gray-500 mb-1 flex items-center gap-1.5">
+              <Swords className="w-3.5 h-3.5 text-sf-red" />
               <span>Opponent&apos;s Answer</span>
             </label>
             {renderAnswerStatus(opponentAnswerText, isOpponentAnswerCorrect)}
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-gray-400 text-xs">⏱ Response time:</span>
-              <span className="text-white text-xs font-mono">{formatTime(opponentResponseMs)}</span>
+              <span className="text-gray-500 text-xs font-body">⏱ Response time:</span>
+              <span className="text-sf-black text-xs font-mono">{formatTime(opponentResponseMs)}</span>
               {bothCorrect && !iWasRoundWinner && (
-                <span className="text-yellow-400 text-xs font-bold">⚡ Faster!</span>
+                <span className="text-sf-orange text-xs font-heading font-800">⚡ Faster!</span>
               )}
             </div>
           </div>
 
           {/* Correct Answer Reveal */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-emerald-400 mb-1 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <label className="block text-[11px] font-heading font-700 uppercase tracking-wider text-emerald-600 mb-1 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
               <span>Correct Answer</span>
             </label>
-            <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500 text-emerald-300 font-mono text-xs sm:text-sm font-bold shadow-md flex items-center justify-between">
+            <div className="p-3 bg-emerald-50 border-2 border-emerald-600 text-emerald-800 font-mono text-xs sm:text-sm font-bold flex items-center justify-between">
               <span>{correctAnswerText}</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 ml-2" />
             </div>
           </div>
 
           {bothCorrect && (
-            <div className="text-center text-xs text-yellow-400 mt-3 bg-yellow-400/10 rounded-lg px-3 py-2">
+            <div className="text-center text-xs font-body text-sf-black mt-3 bg-sf-orange/10 border border-sf-orange px-3 py-2">
               ⚡ Both answered correctly — faster response wins the round
             </div>
           )}
@@ -308,42 +301,36 @@ export default function RoundResultPage() {
 
         {/* Explanation Box */}
         {roundResult.explanation && (
-          <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 leading-relaxed shadow-inner">
-            <span className="font-bold text-indigo-300 uppercase tracking-wider block mb-1 text-[10px]">
+          <div className="sf-card p-3.5">
+            <span className="font-heading font-800 text-sf-orange uppercase tracking-wider block mb-1 text-[10px]">
               Explanation
             </span>
-            <p className="text-slate-300">{roundResult.explanation}</p>
+            <p className="text-gray-700 text-xs font-body leading-relaxed">{roundResult.explanation}</p>
           </div>
         )}
 
         {/* HP Update Row */}
-        <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-md shadow-xl mt-2">
+        <div className="sf-card p-4 mt-2">
           <div className="grid grid-cols-2 gap-4">
             {/* Left: Your HP */}
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-slate-300 truncate">Your HP:</span>
-                <span className="font-mono text-emerald-400 font-extrabold">{Math.max(0, myHp)}</span>
+              <div className="flex items-center justify-between text-xs font-heading font-700">
+                <span className="text-gray-600 truncate">Your HP:</span>
+                <span className="font-mono text-emerald-600 font-extrabold">{Math.max(0, myHp)}</span>
               </div>
-              <div className="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800 p-0.5">
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(100, Math.max(0, myHp))}%` }}
-                />
+              <div className="sf-hp-bar">
+                <div className="sf-hp-fill" style={{ width: `${Math.min(100, Math.max(0, myHp))}%` }} />
               </div>
             </div>
 
             {/* Right: Opponent HP */}
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-slate-300 truncate">Opponent HP:</span>
-                <span className="font-mono text-rose-400 font-extrabold">{Math.max(0, opponentHp)}</span>
+              <div className="flex items-center justify-between text-xs font-heading font-700">
+                <span className="text-gray-600 truncate">Opponent HP:</span>
+                <span className="font-mono text-sf-red font-extrabold">{Math.max(0, opponentHp)}</span>
               </div>
-              <div className="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800 p-0.5">
-                <div
-                  className="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(100, Math.max(0, opponentHp))}%` }}
-                />
+              <div className="sf-hp-bar">
+                <div className="sf-hp-fill-red" style={{ width: `${Math.min(100, Math.max(0, opponentHp))}%` }} />
               </div>
             </div>
           </div>
@@ -351,17 +338,17 @@ export default function RoundResultPage() {
       </div>
 
       {/* Countdown Footer */}
-      <div className="z-10 pt-4 border-t border-slate-800/80 mt-2">
-        <div className="flex items-center justify-between text-xs font-bold text-slate-400 mb-2">
-          <div className="flex items-center gap-1.5 text-indigo-300">
-            <Clock className="w-3.5 h-3.5 animate-pulse text-indigo-400" />
+      <div className="z-10 pt-4 border-t-2 border-sf-gray-border mt-2">
+        <div className="flex items-center justify-between text-xs font-heading font-700 text-gray-500 mb-2">
+          <div className="flex items-center gap-1.5 text-sf-orange">
+            <Clock className="w-3.5 h-3.5 animate-pulse" />
             <span>Next round in {countdown}…</span>
           </div>
-          <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500">Auto-returning</span>
+          <span className="font-mono text-[10px] uppercase tracking-wider text-gray-400">Auto-returning</span>
         </div>
-        <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800/60">
+        <div className="w-full h-1.5 bg-gray-200 border border-sf-gray-border overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-1000 ease-linear"
+            className="h-full sf-gradient transition-all duration-1000 ease-linear"
             style={{ width: `${(countdown / 5) * 100}%` }}
           />
         </div>

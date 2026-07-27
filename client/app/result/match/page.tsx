@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { disconnectSocket, getSocket } from "@/lib/socket";
 import SpriteAnimator from "@/components/SpriteAnimator";
 import UserAvatar from "@/components/UserAvatar";
+import { Trophy, Skull } from "lucide-react";
 
 interface GameState {
   session_code: string;
@@ -134,6 +135,7 @@ export default function MatchResultPage() {
     );
   }
 
+  const isHost = gameState.role === "host";
   const iAmPlayer1 = gameState.role === "player1";
   const iAmPlayer2 = gameState.role === "player2";
 
@@ -153,6 +155,115 @@ export default function MatchResultPage() {
 
   const player1Xp = player1IsWinner ? 120 : 40;
   const player2Xp = player1IsWinner ? 40 : 120;
+
+  // Phones (player1/player2) get the SF light arcade theme, matching the rest
+  // of the mobile flow (/join, /hud, /result/round). The host's shared
+  // arcade-cabinet screen below stays in its own neon fighting-game finale —
+  // it's a different surface (keyboard-nav menu, full-screen sprite reveal),
+  // not a "page of the website" a player is browsing on their phone.
+  if (!isHost) {
+    const iWon = iAmPlayer1 ? player1IsWinner : !player1IsWinner;
+    const myXp = iAmPlayer1 ? player1Xp : player2Xp;
+    const opponentXp = iAmPlayer1 ? player2Xp : player1Xp;
+    const myUsername = iAmPlayer1 ? player1Username : player2Username;
+    const opponentUsername = iAmPlayer1 ? player2Username : player1Username;
+    const myAvatar = iAmPlayer1 ? player1Avatar : player2Avatar;
+    const opponentAvatar = iAmPlayer1 ? player2Avatar : player1Avatar;
+    const myFinalHp = iAmPlayer1 ? matchResult.player1_final_hp : matchResult.player2_final_hp;
+    const opponentFinalHp = iAmPlayer1 ? matchResult.player2_final_hp : matchResult.player1_final_hp;
+
+    return (
+      <div className="min-h-screen sf-bg flex flex-col justify-center items-center p-4 max-w-md mx-auto w-full relative overflow-hidden">
+        <div className="sf-watermark" style={{ top: "6%", left: "4%" }}>
+          {iWon ? "WIN" : "LOSE"}
+        </div>
+
+        <div className="w-full sf-card p-6 relative z-10">
+          {/* Outcome badge */}
+          <div className={`sf-badge inline-flex items-center gap-1.5 mb-4 ${iWon ? "sf-badge-orange" : "sf-badge-black"}`}>
+            {iWon ? <Trophy className="w-3.5 h-3.5" /> : <Skull className="w-3.5 h-3.5" />}
+            <span>{iWon ? "Victory" : "Defeat"}</span>
+          </div>
+
+          <h1 className="font-heading font-900 text-3xl uppercase tracking-tight text-sf-black mb-1">
+            {iWon ? "You Won!" : "You Lost"}
+          </h1>
+          <p className="font-body text-gray-500 text-sm mb-6">
+            {iWon ? "Well fought — victory is yours." : "Better luck in the rematch."}
+          </p>
+
+          {/* Score row */}
+          <div className="flex items-center justify-between border-2 border-sf-black p-4 mb-4">
+            <div className="flex flex-col items-center gap-2">
+              <UserAvatar username={myUsername} profile_picture_url={myAvatar} size="lg" />
+              <span className="font-heading font-700 text-xs uppercase tracking-wide text-sf-black truncate max-w-[90px]">
+                {myUsername}
+              </span>
+              <span className={`font-heading font-800 text-[10px] uppercase px-2 py-0.5 text-white ${iWon ? "bg-blue-600" : "bg-gray-500"}`}>
+                {iWon ? "Won" : "Lost"}
+              </span>
+            </div>
+
+            <div className="font-heading font-900 text-2xl text-gray-300 px-2">VS</div>
+
+            <div className="flex flex-col items-center gap-2">
+              <UserAvatar username={opponentUsername} profile_picture_url={opponentAvatar} size="lg" />
+              <span className="font-heading font-700 text-xs uppercase tracking-wide text-sf-black truncate max-w-[90px]">
+                {opponentUsername}
+              </span>
+              <span className={`font-heading font-800 text-[10px] uppercase px-2 py-0.5 text-white ${!iWon ? "bg-blue-600" : "bg-gray-500"}`}>
+                {!iWon ? "Won" : "Lost"}
+              </span>
+            </div>
+          </div>
+
+          {/* Final HP + XP */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs font-heading font-700">
+                <span className="text-gray-600">Your Final HP</span>
+                <span className="font-mono text-emerald-600 font-extrabold">{Math.max(0, myFinalHp)}</span>
+              </div>
+              <div className="sf-hp-bar">
+                <div className="sf-hp-fill" style={{ width: `${Math.min(100, Math.max(0, myFinalHp))}%` }} />
+              </div>
+              <div className="text-[11px] font-body text-gray-500">
+                XP earned: <span className="text-sf-orange font-bold">+{myXp}</span>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs font-heading font-700">
+                <span className="text-gray-600">Opponent Final HP</span>
+                <span className="font-mono text-sf-red font-extrabold">{Math.max(0, opponentFinalHp)}</span>
+              </div>
+              <div className="sf-hp-bar">
+                <div className="sf-hp-fill-red" style={{ width: `${Math.min(100, Math.max(0, opponentFinalHp))}%` }} />
+              </div>
+              <div className="text-[11px] font-body text-gray-500">
+                XP earned: <span className="text-sf-orange font-bold">+{opponentXp}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Menu */}
+          <div className="flex flex-col gap-3">
+            <button onClick={() => handleMenuAction("rematch")} className="sf-btn-primary w-full">
+              Rematch
+            </button>
+            <button onClick={() => handleMenuAction("leaderboard")} className="sf-btn-ghost w-full">
+              Leaderboard
+            </button>
+            <button onClick={() => handleMenuAction("history")} className="sf-btn-ghost w-full">
+              History
+            </button>
+            <button onClick={() => handleMenuAction("home")} className="sf-btn-ghost w-full">
+              Back to Main
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-gray-950 overflow-hidden">
