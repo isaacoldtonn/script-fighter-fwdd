@@ -47,5 +47,10 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Excludes Next.js internals AND any request for a static file (by
+  // extension) — e.g. /scriptfighter-logo.png, /sprites/ryu-idle.png.
+  // Without the extension exclusion, public assets referenced from
+  // pre-auth pages (/login, /register) were being 307-redirected to
+  // /login by this same middleware, rendering as broken images.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|css|js|map)$).*)"],
 };
