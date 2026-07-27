@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { disconnectSocket } from "@/lib/socket";
-import { Trophy, Shield, Loader2, Sparkles, Award, Zap, RotateCcw, History, BarChart2, Frown, User, Swords } from "lucide-react";
+import { disconnectSocket, getSocket } from "@/lib/socket";
+import SpriteAnimator from "@/components/SpriteAnimator";
+import UserAvatar from "@/components/UserAvatar";
 
 interface GameState {
   session_code: string;
@@ -17,12 +18,30 @@ interface MatchResultData {
   winner_username: string;
   player1_final_hp: number;
   player2_final_hp: number;
+  // Only present when the redirect came from the host's lobby, which already
+  // knows both players' identities. A player's phone (hud.tsx) only ever
+  // sends the fields above — this page falls back gracefully without them.
+  player1_username?: string;
+  player2_username?: string;
+  player1_user_id?: string;
+  player2_user_id?: string;
+  player1_avatar?: string | null;
+  player2_avatar?: string | null;
 }
+
+const MENU_ITEMS = [
+  { label: "Rematch", action: "rematch" },
+  { label: "Leaderboard", action: "leaderboard" },
+  { label: "History", action: "history" },
+  { label: "Back to Main", action: "home" },
+] as const;
 
 export default function MatchResultPage() {
   const router = useRouter();
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [matchResult, setMatchResult] = useState<MatchResultData | null>(null);
+  const [selectedMenu, setSelectedMenu] = useState(0);
+  const selectedMenuRef = useRef(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -64,182 +83,185 @@ export default function MatchResultPage() {
     };
   }, [router]);
 
+  const handleMenuAction = (action: string) => {
+    if (action === "rematch") {
+      if (gameState) {
+        // No server-side listener for this yet — harmless no-op emit that's
+        // forward-compatible with a future "implement rematch" slice.
+        getSocket().emit("rematch:request", { session_code: gameState.session_code });
+      }
+      router.push("/lobby");
+    } else if (action === "leaderboard") {
+      router.push("/leaderboard");
+    } else if (action === "history") {
+      router.push("/history");
+    } else if (action === "home") {
+      router.push("/home");
+    }
+  };
+
+  // Keyboard nav re-attaches once gameState resolves (a single, one-time
+  // transition from null), then reads the latest selection via a ref so
+  // Enter doesn't act on a stale closure — same pattern as /lobby's
+  // matchStartedRef documented in CLAUDE.md.
+  useEffect(() => {
+    selectedMenuRef.current = selectedMenu;
+  }, [selectedMenu]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedMenu((prev) => (prev - 1 + MENU_ITEMS.length) % MENU_ITEMS.length);
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedMenu((prev) => (prev + 1) % MENU_ITEMS.length);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        handleMenuAction(MENU_ITEMS[selectedMenuRef.current].action);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState]);
+
   if (!gameState || !matchResult) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center animate-pulse">
-        <Loader2 className="w-10 h-10 animate-spin text-indigo-500 mb-4" />
-        <p className="text-slate-400 font-medium">Calculating Match Result...</p>
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-white/60 text-sm uppercase tracking-widest">Loading result...</div>
       </div>
     );
   }
 
-  const isWinner = gameState.user_id === matchResult.winner_id;
-  const isPlayer1 = gameState.role === "player1";
-  const myFinalHpRaw = isPlayer1 ? matchResult.player1_final_hp : matchResult.player2_final_hp;
-  const opponentFinalHpRaw = isPlayer1 ? matchResult.player2_final_hp : matchResult.player1_final_hp;
+  const iAmPlayer1 = gameState.role === "player1";
+  const iAmPlayer2 = gameState.role === "player2";
 
-  // Final HP: show remaining HP (0 if lost, winner's HP if won)
-  const displayHp = isWinner ? Math.max(0, myFinalHpRaw) : 0;
-  const xpEarned = isWinner ? 120 : 40;
+  const player1Username = matchResult.player1_username || (iAmPlayer1 ? gameState.username : "Player 1");
+  const player2Username = matchResult.player2_username || (iAmPlayer2 ? gameState.username : "Player 2");
+  const player1Avatar = matchResult.player1_avatar ?? null;
+  const player2Avatar = matchResult.player2_avatar ?? null;
+
+  const player1UserId = matchResult.player1_user_id || (iAmPlayer1 ? gameState.user_id : undefined);
+  const player2UserId = matchResult.player2_user_id || (iAmPlayer2 ? gameState.user_id : undefined);
+
+  const player1IsWinner = player1UserId
+    ? matchResult.winner_id === player1UserId
+    : player2UserId
+    ? matchResult.winner_id !== player2UserId
+    : matchResult.winner_username === player1Username;
+
+  const player1Xp = player1IsWinner ? 120 : 40;
+  const player2Xp = player1IsWinner ? 40 : 120;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white flex flex-col justify-center items-center p-4 sm:p-6 selection:bg-indigo-500 selection:text-white relative overflow-hidden">
-      {/* Background Glows */}
-      <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none transition-all duration-700 ${
-        isWinner ? "bg-amber-500/20" : "bg-rose-500/10"
-      }`} />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative min-h-screen bg-gray-950 overflow-hidden">
+      {/* Background — blurred arena */}
+      <div
+        className="absolute inset-0 bg-cover bg-center blur-sm opacity-30"
+        style={{ backgroundImage: "url('/sprites/arena-bg.jpg')" }}
+      />
 
-      {/* Main Card */}
-      <div className="w-full max-w-md bg-slate-900/80 border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl relative z-10 animate-fade-in text-center space-y-6">
-        {/* Winner Banner / Header */}
-        <div className="relative">
-          {isWinner ? (
-            <div className="flex flex-col items-center justify-center">
-              <div className="relative mb-4">
-                <span className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping blur-sm" />
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center text-slate-950 shadow-xl shadow-amber-500/20 border-2 border-yellow-200">
-                  <Trophy className="w-10 h-10 animate-bounce" />
-                </div>
-              </div>
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-extrabold uppercase tracking-widest mb-2 shadow-sm">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Match Complete</span>
-              </div>
-              <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-400 to-yellow-500 drop-shadow-sm">
-                🏆 Victory!
-              </h1>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center">
-              <div className="w-20 h-20 rounded-full bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-400 mb-4 shadow-inner">
-                <Frown className="w-10 h-10 text-slate-500" />
-              </div>
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-400 text-xs font-extrabold uppercase tracking-widest mb-2">
-                <span>Match Complete</span>
-              </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-300">
-                Defeated
-              </h1>
-            </div>
-          )}
+      {/* RESULT heading — top left, neon style */}
+      <div className="absolute top-8 left-8 z-20">
+        <h1
+          className="text-6xl md:text-8xl font-black tracking-widest"
+          style={{
+            color: "transparent",
+            WebkitTextStroke: "2px #E040FB",
+            textShadow: "0 0 20px #E040FB, 0 0 40px #9C27B0",
+            fontFamily: "Impact, Arial Black, sans-serif",
+          }}
+        >
+          RESULT
+        </h1>
+      </div>
+
+      {/* Winner character sprite — centre right, large */}
+      <div className="absolute right-16 bottom-32 z-10">
+        <SpriteAnimator
+          src={player1IsWinner ? "/sprites/ryu-idle.png" : "/sprites/geki-idle.png"}
+          frameCount={player1IsWinner ? 6 : 5}
+          frameWidth={player1IsWinner ? 77 : 84}
+          frameHeight={player1IsWinner ? 93 : 102}
+          fps={6}
+          loop={true}
+          playing={true}
+          scale={4}
+          flipped={!player1IsWinner}
+        />
+      </div>
+
+      {/* Left panel — winner label + menu */}
+      <div className="absolute left-8 top-40 z-20 flex flex-col gap-2">
+        <div className="text-fuchsia-300/70 font-bold text-xs uppercase tracking-widest mb-1">
+          Winner
+        </div>
+        <div className="text-white font-bold text-lg uppercase tracking-widest mb-4">
+          {player1IsWinner ? player1Username : player2Username}
         </div>
 
-        {/* Winner Name */}
-        <div className="py-2 border-y border-slate-800/80 bg-slate-950/40 rounded-2xl px-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">
-            Winner of the Arena
-          </p>
-          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-wide truncate">
-            {matchResult.winner_username} Wins!
-          </h2>
-        </div>
-
-        {/* Stats Grid (3 boxes) */}
-        <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
-          {/* Box 1: Final HP */}
-          <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3 text-center shadow-inner flex flex-col justify-center">
-            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 block">
-              Final HP
-            </span>
-            <span className="font-mono text-lg sm:text-xl font-black text-emerald-400">
-              {displayHp}
-            </span>
-          </div>
-
-          {/* Box 2: XP Earned */}
-          <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3 text-center shadow-inner flex flex-col justify-center relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-indigo-500 opacity-60" />
-            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 block flex items-center justify-center gap-1">
-              <Zap className="w-3 h-3 text-indigo-400" />
-              <span>XP Earned</span>
-            </span>
-            <span className="font-mono text-lg sm:text-xl font-black text-indigo-300">
-              +{xpEarned}
-            </span>
-          </div>
-
-          {/* Box 3: Outcome */}
-          <div className={`border rounded-2xl p-3 text-center shadow-inner flex flex-col justify-center ${
-            isWinner
-              ? "bg-amber-500/10 border-amber-500/30 text-amber-300"
-              : "bg-slate-950/60 border-slate-800/80 text-slate-400"
-          }`}>
-            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider opacity-80 mb-1 block">
-              Outcome
-            </span>
-            <span className="font-extrabold text-xs sm:text-sm uppercase tracking-wider">
-              {isWinner ? "Victory" : "Defeat"}
-            </span>
-          </div>
-        </div>
-
-        {/* Final HP Bars */}
-        <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 space-y-3 text-left">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center mb-1">
-            Final Battle HP
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            {/* Player 1 HP */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-slate-300 truncate">You ({isPlayer1 ? "P1" : "P2"})</span>
-                <span className="font-mono text-emerald-400 font-extrabold">{Math.max(0, myFinalHpRaw)}</span>
-              </div>
-              <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full"
-                  style={{ width: `${Math.min(100, Math.max(0, myFinalHpRaw))}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Player 2 HP */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-slate-300 truncate">Opponent ({isPlayer1 ? "P2" : "P1"})</span>
-                <span className="font-mono text-rose-400 font-extrabold">{Math.max(0, opponentFinalHpRaw)}</span>
-              </div>
-              <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
-                <div
-                  className="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-full"
-                  style={{ width: `${Math.min(100, Math.max(0, opponentFinalHpRaw))}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Buttons Row */}
-        <div className="space-y-3 pt-2">
-          {/* Play Again (Primary) */}
+        {/* Menu items */}
+        {MENU_ITEMS.map((item, index) => (
           <button
-            onClick={() => router.push("/lobby")}
-            className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 border border-indigo-400/30 text-sm sm:text-base"
+            key={item.action}
+            onClick={() => handleMenuAction(item.action)}
+            onMouseEnter={() => setSelectedMenu(index)}
+            className={`text-left px-6 py-3 text-white font-bold uppercase tracking-widest transition-all duration-150 ${
+              selectedMenu === index
+                ? "bg-pink-600/80 border-l-4 border-pink-300 text-pink-100 pl-8"
+                : "bg-transparent border-l-4 border-transparent hover:bg-white/10"
+            }`}
           >
-            <RotateCcw className="w-5 h-5" />
-            <span>Play Again</span>
+            {item.label}
           </button>
+        ))}
+      </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            {/* View History (Secondary) */}
-            <button
-              onClick={() => router.push("/history")}
-              className="w-full bg-slate-800/80 hover:bg-slate-700 text-white font-semibold py-3 px-4 rounded-xl border border-slate-700 flex items-center justify-center gap-2 transition-all duration-200 text-xs sm:text-sm shadow-md"
-            >
-              <History className="w-4 h-4 text-slate-400" />
-              <span>View History</span>
-            </button>
-
-            {/* Leaderboard (Ghost) */}
-            <button
-              onClick={() => router.push("/leaderboard")}
-              className="w-full bg-transparent hover:bg-slate-800/60 text-slate-300 hover:text-white font-semibold py-3 px-4 rounded-xl border border-slate-800/80 hover:border-slate-700 flex items-center justify-center gap-2 transition-all duration-200 text-xs sm:text-sm"
-            >
-              <BarChart2 className="w-4 h-4 text-indigo-400" />
-              <span>Leaderboard</span>
-            </button>
+      {/* Bottom bar — WON X - Y LOST with avatars */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 bg-black/70 border-t border-gray-700 px-8 py-4">
+        {/* Score row */}
+        <div className="flex items-center justify-center gap-8 mb-3">
+          {/* Player 1 */}
+          <div className="flex items-center gap-3">
+            <UserAvatar username={player1Username} profile_picture_url={player1Avatar} size="md" />
+            <span className="text-white font-bold text-sm uppercase tracking-widest">
+              {player1IsWinner ? "WON" : "LOST"}
+            </span>
           </div>
+
+          {/* Score */}
+          <div className="flex items-center gap-4">
+            <span className="text-4xl font-black text-white">{player1IsWinner ? 1 : 0}</span>
+            <span className="text-2xl text-gray-500 font-bold">-</span>
+            <span className="text-4xl font-black text-white">{player1IsWinner ? 0 : 1}</span>
+          </div>
+
+          {/* Player 2 */}
+          <div className="flex items-center gap-3 flex-row-reverse">
+            <UserAvatar username={player2Username} profile_picture_url={player2Avatar} size="md" />
+            <span className="text-white font-bold text-sm uppercase tracking-widest">
+              {player1IsWinner ? "LOST" : "WON"}
+            </span>
+          </div>
+        </div>
+
+        {/* Stats row — XP earned + final HP per player */}
+        <div className="flex justify-center gap-10 text-sm flex-wrap">
+          <span className="text-gray-400">
+            {player1Username} XP:{" "}
+            <span className="text-yellow-400 font-bold">+{player1Xp}</span>
+          </span>
+          <span className="text-gray-400">
+            {player2Username} XP:{" "}
+            <span className="text-yellow-400 font-bold">+{player2Xp}</span>
+          </span>
+          <span className="text-gray-400">
+            Final HP:{" "}
+            <span className="text-green-400 font-bold">
+              {Math.max(0, matchResult.player1_final_hp)} - {Math.max(0, matchResult.player2_final_hp)}
+            </span>
+          </span>
         </div>
       </div>
     </div>
