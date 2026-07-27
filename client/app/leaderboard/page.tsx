@@ -79,7 +79,7 @@ export default function LeaderboardPage() {
     <>
       <NavBar currentUser={currentUser} />
       <div className="sf-bg min-h-screen relative overflow-hidden pt-14 md:pt-16">
-        <div className="sf-watermark" style={{ top: "5%", right: "-5%" }}>
+        <div className="sf-watermark" style={{ top: "5%", right: "2%" }}>
           RANKING
         </div>
 

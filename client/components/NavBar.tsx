@@ -55,14 +55,10 @@ export default function NavBar({ currentUser }: NavBarProps) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 md:h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/home" className="flex items-center gap-2 shrink-0">
-          <span className="text-xl md:text-2xl">⚡</span>
-          <div className="leading-none">
-            <div className="font-heading font-800 text-lg md:text-xl uppercase tracking-wide text-sf-black">
-              Script Fighter
-            </div>
-            <div className="font-heading font-700 text-[9px] text-sf-orange uppercase tracking-[0.2em]">
-              Arcade Edition
-            </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/scriptfighter-logo.png" alt="Script Fighter" className="h-9 md:h-11 w-auto" />
+          <div className="font-heading font-700 text-[9px] text-sf-orange uppercase tracking-[0.2em] leading-none hidden sm:block">
+            Arcade Edition
           </div>
         </Link>
 
@@ -84,21 +80,31 @@ export default function NavBar({ currentUser }: NavBarProps) {
         {/* Right side */}
         <div className="flex items-center gap-2">
           {currentUser && (
-            <Link href="/profile" className="hidden sm:flex items-center gap-2.5 group">
-              <UserAvatar
-                profile_picture_url={currentUser.profile_picture_url}
-                username={currentUser.username}
-                size="sm"
-              />
-              <div className="leading-tight">
-                <div className="font-heading font-700 text-sm text-sf-black max-w-[120px] truncate">
-                  {currentUser.username}
+            <>
+              <Link href="/profile" className="hidden sm:flex items-center gap-2.5 group">
+                <UserAvatar
+                  profile_picture_url={currentUser.profile_picture_url}
+                  username={currentUser.username}
+                  size="sm"
+                />
+                <div className="leading-tight">
+                  <div className="font-heading font-700 text-sm text-sf-black max-w-[120px] truncate">
+                    {currentUser.username}
+                  </div>
+                  <div className="font-heading font-700 text-[10px] text-sf-orange uppercase tracking-[0.15em] group-hover:underline">
+                    Profile
+                  </div>
                 </div>
-                <div className="font-heading font-700 text-[10px] text-sf-orange uppercase tracking-[0.15em] group-hover:underline">
-                  Profile
-                </div>
-              </div>
-            </Link>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="hidden sm:flex p-2 text-gray-400 hover:text-sf-red transition-colors"
+                aria-label="Logout"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </>
           )}
 
           {/* Hamburger (mobile) */}

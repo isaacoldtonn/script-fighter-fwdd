@@ -87,11 +87,8 @@ export default function RegisterPage() {
         />
 
         <div className="relative z-10">
-          <h1 className="font-heading font-900 text-4xl lg:text-5xl uppercase tracking-wide text-white leading-[0.95]">
-            Script
-            <br />
-            Fighter
-          </h1>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/scriptfighter-logo.png" alt="Script Fighter" className="w-56 lg:w-64 h-auto" />
           <p className="font-heading font-700 text-sf-orange uppercase tracking-[0.2em] text-sm mt-3">
             Arcade Edition
           </p>

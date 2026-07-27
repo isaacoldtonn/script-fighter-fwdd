@@ -367,7 +367,7 @@ export default function LobbyPage() {
     <NavBar currentUser={user} />
     <div className="sf-bg min-h-screen relative overflow-hidden pt-14 md:pt-16">
       {/* Watermark */}
-      <div className="sf-watermark" style={{ top: "5%", right: "-8%" }}>
+      <div className="sf-watermark" style={{ top: "5%", right: "2%" }}>
         LOBBY
       </div>
 

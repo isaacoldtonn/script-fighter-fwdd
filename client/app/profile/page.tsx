@@ -316,7 +316,7 @@ export default function ProfilePage() {
     <>
       <NavBar currentUser={currentUser} />
       <div className="sf-bg min-h-screen relative overflow-hidden pt-14 md:pt-16 pb-16">
-        <div className="sf-watermark" style={{ top: "5%", right: "-5%" }}>
+        <div className="sf-watermark" style={{ top: "5%", right: "2%" }}>
           PROFILE
         </div>
 

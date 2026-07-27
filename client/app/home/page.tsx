@@ -119,7 +119,7 @@ export default function HomePage() {
       <NavBar currentUser={currentUser} />
       <main className="sf-bg min-h-screen relative overflow-hidden pt-14 md:pt-16">
         {/* Watermark */}
-        <div className="sf-watermark" style={{ top: "10%", right: "-5%" }}>
+        <div className="sf-watermark" style={{ top: "10%", right: "2%" }}>
           FIGHT
         </div>
 
