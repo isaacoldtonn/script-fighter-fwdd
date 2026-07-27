@@ -141,39 +141,37 @@ export default function BattleArena({
 
       {/* Screen shake wrapper */}
       <div className={`absolute inset-0 ${screenShake ? "animate-screen-shake" : ""}`}>
-        {/* TOP HUD — HP bars */}
-        <div className="absolute top-0 left-0 right-0 z-20 p-4">
-          <div className="flex items-center gap-4 max-w-4xl mx-auto">
-            <div className="flex-1">
-              <HPBar
-                username={player1.username}
-                hp={player1.hp}
-                maxHp={100}
-                side="left"
-                profilePictureUrl={player1.profile_picture_url}
-              />
-            </div>
+        {/* TOP HUD — player1 pinned top-left, player2 pinned top-right, VS/round dead-centre */}
+        <div className="absolute top-0 left-0 right-0 z-20">
+          <div className="absolute top-4 left-4 md:top-6 md:left-6 w-56 sm:w-64 md:w-80">
+            <HPBar
+              username={player1.username}
+              hp={player1.hp}
+              maxHp={100}
+              side="left"
+              profilePictureUrl={player1.profile_picture_url}
+            />
+          </div>
 
-            <div className="flex flex-col items-center flex-shrink-0 gap-1.5">
-              <span className="text-yellow-400 font-black text-xl border-2 border-yellow-400 px-3 py-1 tracking-widest">
-                VS
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 md:top-6 flex flex-col items-center gap-1.5">
+            <span className="text-yellow-400 font-black text-2xl md:text-3xl border-2 border-yellow-400 px-4 py-1.5 tracking-widest">
+              VS
+            </span>
+            {currentQuestion && (
+              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-300 bg-black/50 px-2.5 py-1 rounded whitespace-nowrap">
+                Round {currentQuestion.round_number} · {currentQuestion.difficulty}
               </span>
-              {currentQuestion && (
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300 bg-black/50 px-2 py-0.5 rounded whitespace-nowrap">
-                  Round {currentQuestion.round_number} · {currentQuestion.difficulty}
-                </span>
-              )}
-            </div>
+            )}
+          </div>
 
-            <div className="flex-1">
-              <HPBar
-                username={player2.username}
-                hp={player2.hp}
-                maxHp={100}
-                side="right"
-                profilePictureUrl={player2.profile_picture_url}
-              />
-            </div>
+          <div className="absolute top-4 right-4 md:top-6 md:right-6 w-56 sm:w-64 md:w-80">
+            <HPBar
+              username={player2.username}
+              hp={player2.hp}
+              maxHp={100}
+              side="right"
+              profilePictureUrl={player2.profile_picture_url}
+            />
           </div>
         </div>
 
@@ -192,7 +190,7 @@ export default function BattleArena({
               fps={8}
               loop={true}
               playing={ryu === "idle"}
-              scale={2.5}
+              scale={3.2}
               flipped={false}
               className={ryu !== "idle" ? "hidden" : ""}
             />
@@ -204,7 +202,7 @@ export default function BattleArena({
               fps={12}
               loop={false}
               playing={ryu === "attack"}
-              scale={2.5}
+              scale={3.2}
               flipped={false}
               onComplete={() => setRyu("idle")}
               className={ryu !== "attack" ? "hidden" : ""}
@@ -217,7 +215,7 @@ export default function BattleArena({
               fps={8}
               loop={false}
               playing={ryu === "fainted"}
-              scale={2.5}
+              scale={3.2}
               flipped={false}
               onComplete={handleFaintComplete}
               className={ryu !== "fainted" ? "hidden" : ""}
@@ -237,7 +235,7 @@ export default function BattleArena({
               fps={8}
               loop={true}
               playing={geki === "idle"}
-              scale={2.5}
+              scale={3.2}
               flipped={true}
               className={geki !== "idle" ? "hidden" : ""}
             />
@@ -249,7 +247,7 @@ export default function BattleArena({
               fps={12}
               loop={false}
               playing={geki === "attack"}
-              scale={2.5}
+              scale={3.2}
               flipped={true}
               onComplete={() => setGeki("idle")}
               className={geki !== "attack" ? "hidden" : ""}
@@ -262,7 +260,7 @@ export default function BattleArena({
               fps={8}
               loop={false}
               playing={geki === "fainted"}
-              scale={2.5}
+              scale={3.2}
               flipped={true}
               onComplete={handleFaintComplete}
               className={geki !== "fainted" ? "hidden" : ""}
